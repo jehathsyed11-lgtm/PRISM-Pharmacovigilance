@@ -1,0 +1,1999 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRISM — Pharmacovigilance Real-time Integrated Signal Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#141518;
+  --ink-2:#2a2d33;
+  --ink-3:#4b5058;
+  --ink-4:#747a84;
+  --ink-5:#a9aeb6;
+  --rule:#e4e4e4;
+  --rule-2:#f0f0f0;
+  --paper:#ffffff;
+  --paper-2:#ffffff;
+  --card:#ffffff;
+  --accent:oklch(32% 0.02 260);
+  --accent-2:oklch(26% 0.025 260);
+  --accent-tint:oklch(96% 0.008 260);
+  --sig-pos:oklch(48% 0.09 150);
+  --sig-warn:oklch(58% 0.11 60);
+  --sig-neg:oklch(52% 0.14 25);
+  --sig-pos-tint:oklch(95% 0.02 150);
+  --sig-warn-tint:oklch(95% 0.025 60);
+  --sig-neg-tint:oklch(96% 0.02 25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--paper);color:var(--ink)}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:13px;line-height:1.5;
+  font-feature-settings:"ss01","cv11","tnum";
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--ink);color:var(--paper-2)}
+
+.serif{font-family:'Newsreader',Georgia,serif;font-feature-settings:"liga","dlig"}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.num{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+
+/* ═══════════════════════ MASTHEAD ═══════════════════════ */
+.masthead{
+  background:var(--paper-2);
+  border-bottom:1px solid var(--rule);
+}
+.masthead-inner{
+  max-width:1560px;margin:0 auto;padding:22px 40px 18px;
+  display:grid;grid-template-columns:auto 1fr auto;gap:40px;align-items:end;
+}
+.brand{display:flex;align-items:baseline;gap:14px}
+.brand-mark{
+  width:38px;height:38px;position:relative;flex-shrink:0;
+  border:1px solid var(--ink);align-self:center;
+}
+.brand-mark::before,.brand-mark::after{
+  content:"";position:absolute;inset:0;border:1px solid var(--ink);
+}
+.brand-mark::before{transform:rotate(15deg)}
+.brand-mark::after{transform:rotate(30deg);opacity:.5}
+.brand-name{
+  font-family:'Newsreader',serif;
+  font-size:38px;font-weight:600;letter-spacing:-0.02em;
+  line-height:.9;color:var(--ink);
+}
+.brand-expand{
+  font-family:'Newsreader',serif;
+  font-size:12px;font-style:italic;color:var(--ink-3);
+  line-height:1.2;margin-top:4px;white-space:nowrap;
+}
+.masthead-meta{
+  display:flex;gap:28px;align-items:flex-end;justify-content:flex-end;
+  font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-4);
+  font-weight:500;
+}
+.masthead-meta > div{display:flex;flex-direction:column;gap:3px;text-align:right}
+.masthead-meta strong{color:var(--ink);font-weight:600;letter-spacing:0.08em;font-size:11px}
+
+.slug-strip{
+  background:var(--ink);color:var(--paper-2);
+  font-size:10.5px;text-transform:uppercase;letter-spacing:0.18em;font-weight:500;
+}
+.slug-strip-inner{
+  max-width:1560px;margin:0 auto;padding:7px 40px;
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+}
+.slug-strip .tag{color:var(--accent-tint);opacity:.7}
+.slug-strip .dot{opacity:.4;margin:0 10px}
+
+/* ═══════════════════════ LAYOUT ═══════════════════════ */
+.shell{
+  max-width:1560px;margin:0 auto;
+  display:grid;grid-template-columns:320px 1fr;gap:0;
+  min-height:calc(100vh - 130px);
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+  background:var(--paper-2);
+}
+@media(max-width:1000px){.shell{grid-template-columns:1fr}}
+
+/* ═══════════════════════ SIDEBAR ═══════════════════════ */
+.sidebar{
+  border-right:1px solid var(--rule);
+  background:var(--paper-2);
+  padding:24px 22px 40px;
+}
+.side-section{margin-bottom:26px}
+.side-head{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--ink-4);font-weight:600;
+  padding-bottom:8px;margin-bottom:12px;
+  border-bottom:1px solid var(--rule);
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.side-head .num-label{
+  font-family:'IBM Plex Mono',monospace;color:var(--ink-5);letter-spacing:0;
+  font-weight:400;
+}
+
+.mode-list{display:flex;flex-direction:column;gap:2px}
+.mode-item{
+  display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:center;
+  padding:10px 10px;cursor:pointer;border:none;background:none;width:100%;text-align:left;
+  font-family:inherit;font-size:13px;color:var(--ink-2);
+  border-left:2px solid transparent;
+  transition:background .12s,border-color .12s;
+}
+.mode-item:hover{background:var(--paper)}
+.mode-item.on{
+  background:var(--card);border-left-color:var(--accent);
+  color:var(--ink);font-weight:500;
+}
+.mode-item .mode-num{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  color:var(--ink-5);font-weight:400;
+}
+.mode-item.on .mode-num{color:var(--accent-2)}
+.mode-item .mode-label{line-height:1.2}
+.mode-item .mode-desc{
+  font-size:10.5px;color:var(--ink-4);margin-top:2px;line-height:1.3;
+}
+
+.field{margin-bottom:14px}
+.field-label{
+  display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--ink-3);font-weight:600;margin-bottom:5px;
+}
+.field-input,.field-select{
+  width:100%;padding:9px 10px;font-family:inherit;font-size:13px;
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--rule);border-radius:0;
+  outline:none;transition:border-color .12s;
+}
+.field-input:focus,.field-select:focus{
+  border-color:var(--ink-2);
+}
+.field-input::placeholder{color:var(--ink-5);font-family:'IBM Plex Mono',monospace;font-size:12px}
+.field-select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%23747a84' fill='none' stroke-width='1.2'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center;background-size:10px;
+  padding-right:28px;cursor:pointer;
+}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.field-row-4{display:grid;grid-template-columns:1.1fr 1fr 1.1fr 1fr;gap:4px;align-items:center}
+.field-row-4 .arrow{text-align:center;font-size:10px;color:var(--ink-4);letter-spacing:0.1em}
+.field-row-4 > *{min-width:0}
+.field-row-4 .field-select{padding-left:7px;padding-right:20px;background-position:right 5px center}
+
+.run-btn{
+  width:100%;padding:12px 14px;margin-top:4px;
+  background:var(--ink);color:var(--paper-2);
+  border:none;font-family:inherit;font-size:11.5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.14em;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  transition:background .12s;
+}
+.run-btn:hover:not(:disabled){background:var(--accent-2)}
+.run-btn:disabled{background:var(--ink-4);cursor:wait}
+.run-btn .arrow{font-family:'IBM Plex Mono',monospace;opacity:.6}
+
+.hint-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.hint-chip{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  padding:3px 7px;background:transparent;color:var(--ink-3);
+  border:1px solid var(--rule);cursor:pointer;
+  transition:all .12s;
+}
+.hint-chip:hover{border-color:var(--ink-3);color:var(--ink);background:var(--card)}
+
+/* ═══════════════════════ MAIN ═══════════════════════ */
+.main{padding:32px 40px 60px;background:var(--paper-2);min-width:0;overflow:hidden}
+
+.doc-header{margin-bottom:28px}
+.kicker{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:0.18em;
+  color:var(--accent-2);font-weight:600;margin-bottom:8px;
+  display:flex;gap:10px;align-items:center;
+}
+.kicker::after{content:"";flex:1;height:1px;background:var(--rule);opacity:.7}
+.doc-title{
+  font-family:'Newsreader',serif;font-size:42px;font-weight:500;
+  letter-spacing:-0.02em;line-height:1.02;color:var(--ink);
+  margin-bottom:10px;max-width:900px;
+}
+.doc-title em{font-style:italic;color:var(--ink-3);font-weight:400}
+.doc-lede{
+  font-family:'Newsreader',serif;font-size:16px;line-height:1.55;
+  color:var(--ink-3);max-width:820px;
+}
+
+/* Disclaimer block — editorial pullquote style */
+.disclaimer{
+  margin:24px 0 28px;padding:16px 20px 16px 24px;
+  border-left:3px solid var(--sig-warn);
+  background:var(--sig-warn-tint);
+  font-size:12.5px;line-height:1.65;color:var(--ink-2);
+}
+.disclaimer-label{
+  display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:0.16em;
+  font-weight:700;color:var(--sig-warn);margin-right:10px;
+}
+.disclaimer b{color:var(--ink);font-weight:600}
+
+/* Progress as a precise indicator bar */
+.progress-panel{
+  margin:20px 0 24px;padding:16px 20px;background:var(--card);
+  border:1px solid var(--rule);
+  display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
+}
+.progress-label{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--ink-3);font-weight:600;
+}
+.progress-text{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.progress-track{
+  position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--rule-2);
+}
+.progress-panel{position:relative}
+.progress-fill{
+  position:absolute;bottom:0;left:0;height:2px;background:var(--accent);
+  transition:width .5s;
+}
+.progress-pct{
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent-2);
+  min-width:50px;text-align:right;
+}
+
+.err-panel{
+  margin:20px 0;padding:16px 20px;
+  border-left:3px solid var(--sig-neg);background:var(--sig-neg-tint);
+  font-size:13px;color:var(--ink-2);line-height:1.6;
+}
+.err-panel b{color:var(--ink)}
+.err-panel a{color:var(--accent-2);text-decoration:underline;cursor:pointer}
+
+/* ═══════════════════════ REPORT HEADER ═══════════════════════ */
+.report-head{
+  margin:20px 0 0;padding:0 0 18px;border-bottom:2px solid var(--ink);
+}
+.report-subject{
+  display:flex;align-items:baseline;gap:18px;margin-bottom:14px;flex-wrap:wrap;
+}
+.report-drug{
+  font-family:'Newsreader',serif;font-size:44px;font-weight:600;
+  letter-spacing:-0.02em;line-height:1;color:var(--ink);
+  text-transform:none;
+}
+.report-sub{
+  font-family:'Newsreader',serif;font-style:italic;font-size:18px;
+  color:var(--accent-2);font-weight:400;
+}
+.report-vs{
+  font-family:'Newsreader',serif;font-style:italic;font-size:22px;
+  color:var(--ink-4);font-weight:400;margin:0 4px;
+}
+
+.report-meta-strip{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+}
+.meta-cell{
+  padding:10px 14px;border-right:1px solid var(--rule);
+}
+.meta-cell:last-child{border-right:none}
+.meta-k{
+  font-size:9.5px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--ink-4);font-weight:600;margin-bottom:3px;
+}
+.meta-v{
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;
+  color:var(--ink);letter-spacing:-0.01em;
+}
+
+/* ═══════════════════════ METRIC BAND ═══════════════════════ */
+.metric-band{
+  margin:22px 0 28px;
+  display:grid;grid-template-columns:repeat(6,1fr);gap:0;
+  border:1px solid var(--rule);background:var(--card);
+}
+@media(max-width:900px){.metric-band{grid-template-columns:repeat(3,1fr)}}
+.metric{
+  padding:20px 14px 18px;border-right:1px solid var(--rule);position:relative;
+  text-align:center;
+}
+.metric:last-child{border-right:none}
+.metric-k{
+  font-size:9.5px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--ink-4);font-weight:600;margin-bottom:10px;
+  white-space:nowrap;
+}
+.metric-v{
+  font-family:'Newsreader',serif;font-size:34px;font-weight:500;
+  letter-spacing:-0.02em;line-height:1;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.metric-v .unit{font-size:14px;color:var(--ink-4);font-style:italic;margin-left:4px}
+.metric-s{
+  font-size:10px;color:var(--ink-4);margin-top:8px;line-height:1.35;
+  font-family:'IBM Plex Mono',monospace;
+  text-wrap:balance;
+}
+.metric.pos .metric-v{color:var(--sig-pos)}
+.metric.warn .metric-v{color:var(--sig-warn)}
+.metric.accent .metric-v{color:var(--accent-2)}
+
+/* ═══════════════════════ TOOL BAR ═══════════════════════ */
+.toolbar{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
+  margin:24px 0 2px;padding-bottom:0;flex-wrap:wrap;
+}
+.tabs{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;border-bottom:1px solid var(--rule);flex:1}
+.tab{
+  padding:10px 18px;border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:12px;font-weight:500;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.1em;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .12s,border-color .12s;
+  display:flex;align-items:center;gap:8px;
+}
+.tab:hover{color:var(--ink-2)}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tab .tab-num{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-5);
+  letter-spacing:0;
+}
+.tab.on .tab-num{color:var(--accent-2)}
+
+.exports{display:flex;gap:0;border:1px solid var(--rule);background:var(--card)}
+.exp-btn{
+  padding:8px 14px;background:none;border:none;border-right:1px solid var(--rule);
+  font-family:inherit;font-size:11px;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-2);
+  cursor:pointer;transition:background .12s;
+}
+.exp-btn:last-child{border-right:none}
+.exp-btn:hover{background:var(--paper);color:var(--ink)}
+
+/* ═══════════════════════ PANELS ═══════════════════════ */
+.panel{
+  background:var(--card);border:1px solid var(--rule);
+  padding:22px 24px;margin-bottom:20px;
+}
+.panel-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid var(--rule);
+  gap:16px;flex-wrap:wrap;
+}
+.panel-title{
+  font-family:'Newsreader',serif;font-size:20px;font-weight:600;
+  letter-spacing:-0.01em;color:var(--ink);
+}
+.panel-title-kicker{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--ink-4);font-weight:600;margin-bottom:3px;
+}
+.panel-sub{
+  font-size:12px;color:var(--ink-3);line-height:1.55;margin-bottom:14px;max-width:920px;
+  text-align:justify;hyphens:auto;
+}
+
+.filter-row{
+  display:flex;align-items:center;gap:4px;margin-bottom:14px;flex-wrap:wrap;
+}
+.filter-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--ink-4);font-weight:600;margin-right:6px;
+}
+.filter-btn{
+  padding:5px 11px;background:var(--card);border:1px solid var(--rule);
+  font-family:inherit;font-size:11.5px;color:var(--ink-3);cursor:pointer;
+  transition:all .12s;font-weight:500;
+}
+.filter-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.filter-btn.on{background:var(--ink);color:var(--paper-2);border-color:var(--ink)}
+.filter-btn .n{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;margin-left:4px;opacity:.7;
+}
+
+/* ═══════════════════════ TABLE ═══════════════════════ */
+.data-wrap{
+  border:1px solid var(--rule);overflow:auto;max-height:620px;
+  background:var(--card);
+}
+table.data{
+  width:100%;border-collapse:collapse;font-size:12.5px;
+}
+table.data thead th{
+  position:sticky;top:0;z-index:2;
+  padding:10px 12px;text-align:left;
+  background:var(--paper);border-bottom:2px solid var(--ink);
+  font-size:9.5px;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--ink-2);font-weight:700;cursor:pointer;user-select:none;white-space:nowrap;
+}
+table.data thead th:hover{color:var(--accent-2)}
+table.data thead th .sort-ind{
+  display:inline-block;width:8px;text-align:center;color:var(--ink-5);margin-left:3px;
+}
+table.data tbody td{
+  padding:9px 12px;border-bottom:1px solid var(--rule-2);color:var(--ink-2);
+  vertical-align:top;
+}
+table.data tbody tr:hover{background:var(--paper-2)}
+table.data tbody tr:last-child td{border-bottom:none}
+.cell-pt{
+  font-family:'Newsreader',serif;font-size:13.5px;
+  color:var(--ink);max-width:340px;line-height:1.35;
+}
+.cell-pt.sig{font-weight:600}
+.cell-num{
+  font-family:'IBM Plex Mono',monospace;text-align:right;
+  font-variant-numeric:tabular-nums;color:var(--ink-2);
+}
+.cell-num.bold{color:var(--ink);font-weight:600}
+.cell-num.ic-pos{color:var(--sig-pos);font-weight:600}
+.cell-ci{
+  font-family:'IBM Plex Mono',monospace;text-align:center;
+  color:var(--ink-4);font-size:11.5px;white-space:nowrap;
+}
+.sig-badge{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:600;padding:2px 7px;
+  text-transform:uppercase;letter-spacing:0.06em;
+}
+.sig-badge.yes{background:var(--sig-pos-tint);color:var(--sig-pos)}
+.sig-badge.no{color:var(--ink-5)}
+
+.table-foot{
+  background:var(--card);padding:16px 20px;border:1px solid var(--rule);border-top:none;
+  font-size:11.5px;color:var(--ink-3);line-height:1.7;
+}
+.table-foot b{color:var(--ink);font-weight:600}
+.table-foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px}
+.foot-sect{margin-top:6px}
+.foot-sect-h{
+  font-size:9.5px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--ink-2);font-weight:700;margin-bottom:4px;
+}
+
+/* ═══════════════════════ DEMOGRAPHICS ═══════════════════════ */
+.demo-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:0;
+  border:1px solid var(--rule);background:var(--card);
+}
+.demo-cell{padding:20px 22px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.demo-cell-h{
+  font-family:'Newsreader',serif;font-size:16px;font-weight:600;
+  color:var(--ink);margin-bottom:4px;
+}
+.demo-cell-s{font-size:10.5px;color:var(--ink-4);margin-bottom:14px;line-height:1.5}
+.demo-row{
+  display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--rule-2);
+}
+.demo-row:last-child{border-bottom:none}
+.demo-lbl{font-size:12px;color:var(--ink-2)}
+.demo-bar{height:6px;background:var(--rule-2);position:relative;overflow:hidden}
+.demo-bar-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
+.demo-val{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+  color:var(--ink);font-variant-numeric:tabular-nums;min-width:88px;text-align:right;
+}
+
+/* ═══════════════════════ METHOD / LONGFORM ═══════════════════════ */
+.method-doc{
+  column-count:1;background:var(--card);border:1px solid var(--rule);
+  padding:26px 34px 28px 28px;
+}
+.method-doc h2{
+  font-family:'Newsreader',serif;font-size:28px;font-weight:600;
+  letter-spacing:-0.01em;margin-bottom:8px;
+}
+.method-doc h3{
+  font-family:'Newsreader',serif;font-size:17px;font-weight:600;
+  margin:22px 0 8px;color:var(--ink);display:flex;gap:10px;align-items:baseline;
+}
+.method-doc h3 .sec-num{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;
+  color:var(--ink-5);letter-spacing:0;
+}
+.method-doc h4{font-family:'Newsreader',serif;font-size:14px;font-weight:600;margin:16px 0 6px;font-style:italic}
+.method-doc p,.method-doc .body{
+  font-family:'Newsreader',serif;font-size:14.5px;line-height:1.65;
+  color:var(--ink-2);margin-bottom:10px;max-width:100%;text-align:left;hyphens:none;white-space:normal;word-break:normal;overflow-wrap:normal;
+}
+.method-doc .body b{color:var(--ink);font-weight:600}
+.method-doc .formula{
+  margin:12px 0 14px;padding:14px 18px;
+  background:var(--paper);border-left:2px solid var(--accent);
+  font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.85;
+  color:var(--ink);max-width:100%;white-space:normal;word-break:normal;overflow-wrap:normal;
+}
+.method-doc hr{border:none;border-top:1px solid var(--rule);margin:26px 0}
+.method-doc table{
+  border-collapse:collapse;margin:12px 0 14px;font-size:12.5px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.method-doc table td,.method-doc table th{
+  border:1px solid var(--rule);padding:8px 14px;text-align:center;
+}
+.method-doc table th{background:var(--paper);font-weight:600;color:var(--ink)}
+.method-doc ol{margin:0 0 12px 20px;font-family:'Newsreader',serif;font-size:13.5px;line-height:1.7;color:var(--ink-2)}
+.method-doc ol li{margin-bottom:8px}
+.ref-item{
+  font-family:'Inter',sans-serif;font-size:12px;line-height:1.6;
+  color:var(--ink-3);padding:6px 0;border-bottom:1px solid var(--rule-2);
+  display:grid;grid-template-columns:28px 1fr;gap:10px;
+}
+.ref-n{font-family:'IBM Plex Mono',monospace;color:var(--ink-5);font-size:11px}
+
+/* ═══════════════════════ FORESTS / CHARTS ═══════════════════════ */
+.chart-wrap{background:var(--card);padding:8px 0 0}
+
+/* ═══════════════════════ FOOTER ═══════════════════════ */
+.colophon{
+  margin-top:40px;padding:28px 40px 32px;
+  border-top:2px solid var(--ink);
+  background:var(--paper-2);
+}
+.colophon-inner{
+  max-width:1560px;margin:0 auto;
+  display:grid;grid-template-columns:1fr auto;gap:28px;align-items:start;
+}
+.colo-brand{
+  font-family:'Newsreader',serif;font-size:22px;font-weight:600;
+  letter-spacing:-0.01em;color:var(--ink);margin-bottom:4px;
+}
+.colo-sub{font-size:12px;color:var(--ink-3);margin-bottom:10px}
+.colo-authors{font-size:12px;color:var(--ink-2);margin-bottom:12px}
+.colo-authors strong{color:var(--ink);font-weight:600}
+.colo-legal{font-size:11px;color:var(--ink-4);max-width:720px;line-height:1.6}
+.colo-meta{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  color:var(--ink-4);text-align:right;line-height:1.8;text-transform:uppercase;letter-spacing:0.08em;
+}
+
+.hidden{display:none!important}
+
+/* Comparison */
+.comp-headline{
+  display:flex;align-items:baseline;gap:16px;margin-bottom:6px;flex-wrap:wrap;
+}
+.comp-drug{
+  font-family:'Newsreader',serif;font-size:36px;font-weight:600;
+  letter-spacing:-0.02em;line-height:1;color:var(--ink);
+}
+.comp-drug.b{color:var(--accent-2)}
+.comp-vs{
+  font-family:'Newsreader',serif;font-style:italic;font-size:20px;color:var(--ink-4);
+}
+
+/* Mobile compatibility */
+@media(max-width:700px){
+  html,body{width:100%;overflow-x:hidden}
+  .masthead-inner{
+    padding:18px 16px 16px;
+    grid-template-columns:1fr;
+    gap:14px;
+    align-items:start;
+  }
+  .brand{align-items:center;min-width:0}
+  .brand-name{font-size:34px}
+  .brand-expand{
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .masthead-meta{
+    justify-content:flex-start;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:14px 22px;
+    max-width:100%;
+  }
+  .masthead-meta > div{text-align:left;min-width:0}
+  .masthead-meta strong{overflow-wrap:anywhere}
+  .slug-strip-inner{
+    padding:7px 16px;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+  }
+  .slug-strip-inner > div{min-width:0;overflow-wrap:anywhere}
+  .shell{
+    border-left:none;
+    border-right:none;
+  }
+  .sidebar{
+    padding:20px 16px 28px;
+    border-right:none;
+    border-bottom:1px solid var(--rule);
+  }
+  .field-row-4{grid-template-columns:1fr 1fr}
+  .field-row-4 .arrow{display:none}
+  .main{
+    padding:24px 16px 44px;
+    overflow:visible;
+  }
+  .doc-title{font-size:34px}
+  .report-drug,.comp-drug{
+    font-size:36px;
+    overflow-wrap:anywhere;
+  }
+  .report-meta-strip{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .meta-cell{min-width:0}
+  .meta-k,.meta-v{
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .metric-band{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .metric{
+    min-width:0;
+    padding:18px 10px 16px;
+  }
+  .metric-k{
+    white-space:normal;
+    overflow-wrap:anywhere;
+    line-height:1.45;
+  }
+  .metric-v{
+    font-size:clamp(28px,10vw,34px);
+  }
+  .metric-s{
+    overflow-wrap:anywhere;
+  }
+  .disclaimer{
+    padding:14px 16px 14px 18px;
+    overflow-wrap:anywhere;
+  }
+  .disclaimer-label{
+    display:block;
+    margin:0 0 6px;
+    line-height:1.4;
+  }
+  .toolbar{align-items:stretch}
+  .tabs{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+  .tab{
+    justify-content:flex-start;
+    padding:10px 0;
+    white-space:normal;
+  }
+  .exports{width:100%;overflow:auto}
+  .exp-btn{flex:1;min-width:max-content}
+  .panel{padding:18px 16px}
+  .progress-panel{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .progress-text{
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .demo-grid{grid-template-columns:1fr}
+  .demo-row{
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+  .demo-val{
+    min-width:0;
+    text-align:left;
+  }
+  .method-doc{
+    padding:24px 16px;
+    overflow-wrap:anywhere;
+  }
+  .method-doc table{
+    display:block;
+    max-width:100%;
+    overflow-x:auto;
+  }
+  .colophon{padding:24px 16px 28px}
+  .colophon-inner{grid-template-columns:1fr}
+  .colo-meta{text-align:left}
+}
+
+@media(max-width:420px){
+  .report-meta-strip,.metric-band{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .field-row-4{grid-template-columns:1fr}
+  .metric{
+    border-right:none;
+    border-bottom:1px solid var(--rule);
+  }
+  .metric:last-child{border-bottom:none}
+}
+/* Print */
+@media print{
+  .sidebar,.toolbar .exports,.run-btn,.progress-panel{display:none!important}
+  .shell{grid-template-columns:1fr;border:none}
+  body{background:#fff}
+  .masthead,.slug-strip{background:#fff;color:#000}
+  .slug-strip{border-top:1px solid #000;border-bottom:1px solid #000}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ MASTHEAD ════════════════ -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <div class="brand-name">PRISM</div>
+        <div class="brand-expand">Pharmacovigilance Real-time Integrated Signal Monitor</div>
+      </div>
+    </div>
+    <div></div>
+    <div class="masthead-meta">
+      <div><span>Data Vintage</span><strong id="qInfo">AEMS 2004 Q1 — latest</strong></div>
+    </div>
+  </div>
+</header>
+<div class="slug-strip">
+  <div class="slug-strip-inner">
+    <div>
+      <span class="tag">Disproportionality Analysis</span>
+      <span class="dot">·</span>
+      <span>openFDA / AEMS</span>
+      <span class="dot">·</span>
+      <span>ROR · PRR · χ² · BCPNN IC / IC₀₂₅</span>
+    </div>
+    <div>Research Use Only</div>
+  </div>
+</div>
+
+<!-- ════════════════ SHELL ════════════════ -->
+<div class="shell">
+
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <aside class="sidebar">
+
+    <div class="side-section">
+      <div class="side-head">Analysis Mode <span class="num-label">§ 01</span></div>
+      <div class="mode-list">
+        <button class="mode-item on" id="mSingle" onclick="setMode('single')">
+          <span class="mode-num">01</span>
+          <span>
+            <span class="mode-label">Single Drug Analysis</span>
+            <div class="mode-desc">Disproportionality profile across top adverse events</div>
+          </span>
+        </button>
+        <button class="mode-item" id="mComp" onclick="setMode('compare')">
+          <span class="mode-num">02</span>
+          <span>
+            <span class="mode-label">Drug ↔ Drug Comparison</span>
+            <div class="mode-desc">Side-by-side reporting patterns for two drugs</div>
+          </span>
+        </button>
+        <button class="mode-item" id="mADR" onclick="setMode('adr')">
+          <span class="mode-num">03</span>
+          <span>
+            <span class="mode-label">Reverse Search (ADR → Drug)</span>
+            <div class="mode-desc">Drugs reported as primary suspect for an event</div>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Single panel params -->
+    <div id="singlePanel">
+      <div class="side-section">
+        <div class="side-head">Query Parameters <span class="num-label">§ 02</span></div>
+        <div class="field">
+          <label class="field-label">Generic Name</label>
+          <input class="field-input" id="inp1" placeholder="e.g. RIVAROXABAN" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field-label">Patient Subgroup</label>
+          <select class="field-select" id="subgroup">
+            <option value="">All patients</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="older">Older Adult (≥65 years)</option>
+            <option value="adult">Adult (18–64 years)</option>
+            <option value="paediatric">Paediatric (&lt;18 years)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Event Coverage</label>
+          <select class="field-select" id="topN">
+            <option value="50">Top 50 · fastest (~60 s)</option>
+            <option value="100">Top 100 · standard (~2–3 min)</option>
+            <option value="200">Top 200 · extended (~5–6 min)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Reporting Period</label>
+          <div class="field-row-4">
+            <select class="field-select" id="fromY"><option value="">Year</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select class="field-select" id="fromQ"><option value="">Qtr</option><option value="01">Q1</option><option value="04">Q2</option><option value="07">Q3</option><option value="10">Q4</option></select>
+            <select class="field-select" id="toY"><option value="">Year</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select class="field-select" id="toQ"><option value="">Qtr</option><option value="03">Q1</option><option value="06">Q2</option><option value="09">Q3</option><option value="12">Q4</option></select>
+          </div>
+          <div style="font-size:10.5px;color:var(--ink-4);margin-top:5px;line-height:1.4">Leave blank for the full archive (2004 Q1 — latest).</div>
+        </div>
+      </div>
+      <button class="run-btn" id="runBtn" onclick="runSingle()">Run Analysis <span class="arrow">›››</span></button>
+    </div>
+
+    <!-- Compare panel params -->
+    <div id="compPanel" class="hidden">
+      <div class="side-section">
+        <div class="side-head">Comparison Parameters <span class="num-label">§ 02</span></div>
+        <div class="field">
+          <label class="field-label">Drug 1 <span style="color:var(--accent-2);font-family:'IBM Plex Mono',monospace">— A</span></label>
+          <input class="field-input" id="cInp1" placeholder="e.g. RIVAROXABAN" spellcheck="false">
+        </div>
+        <div class="field">
+          <label class="field-label">Drug 2 <span style="color:var(--ink-3);font-family:'IBM Plex Mono',monospace">— B</span></label>
+          <input class="field-input" id="cInp2" placeholder="e.g. APIXABAN" spellcheck="false">
+        </div>
+        <div class="field">
+          <label class="field-label">Patient Subgroup</label>
+          <select class="field-select" id="cSubgroup">
+            <option value="">All patients</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="older">Older Adult (≥65 years)</option>
+            <option value="adult">Adult (18–64 years)</option>
+            <option value="paediatric">Paediatric (&lt;18 years)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Event Coverage</label>
+          <select class="field-select" id="cTopN">
+            <option value="50">Top 50 · fastest (~60 s)</option>
+            <option value="100">Top 100 · standard (~2–3 min)</option>
+            <option value="200">Top 200 · extended (~5–6 min)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Reporting Period</label>
+          <div class="field-row-4">
+            <select class="field-select" id="cfromY"><option value="">Year</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select class="field-select" id="cfromQ"><option value="">Qtr</option><option value="01">Q1</option><option value="04">Q2</option><option value="07">Q3</option><option value="10">Q4</option></select>
+            <select class="field-select" id="ctoY"><option value="">Year</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select class="field-select" id="ctoQ"><option value="">Qtr</option><option value="03">Q1</option><option value="06">Q2</option><option value="09">Q3</option><option value="12">Q4</option></select>
+          </div>
+        </div>
+      </div>
+      <button class="run-btn" id="compBtn" onclick="runCompare()">Run Comparison <span class="arrow">›››</span></button>
+    </div>
+
+    <!-- ADR panel params -->
+    <div id="adrPanel" class="hidden">
+      <div class="side-section">
+        <div class="side-head">Reverse Query <span class="num-label">§ 02</span></div>
+        <div class="field">
+          <label class="field-label">Adverse Event Term</label>
+          <input class="field-input" id="adrInp" placeholder="e.g. HAEMORRHAGE" spellcheck="false">
+        </div>
+        <div class="field">
+          <label class="field-label">Patient Subgroup</label>
+          <select class="field-select" id="adrSubgroup">
+            <option value="">All patients</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="older">Older Adult (≥65 years)</option>
+            <option value="adult">Adult (18–64 years)</option>
+            <option value="paediatric">Paediatric (&lt;18 years)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Top Drugs Coverage</label>
+          <select class="field-select" id="adrTopN">
+            <option value="30">Top 30 · fast</option>
+            <option value="50">Top 50 · standard</option>
+            <option value="100">Top 100 · extended</option>
+            <option value="200">Top 200 · comprehensive</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Reporting Period</label>
+          <div class="field-row-4">
+            <select class="field-select" id="adrFromY"><option value="">Year</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select class="field-select" id="adrFromQ"><option value="">Qtr</option><option value="01">Q1</option><option value="04">Q2</option><option value="07">Q3</option><option value="10">Q4</option></select>
+            <select class="field-select" id="adrToY"><option value="">Year</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select class="field-select" id="adrToQ"><option value="">Qtr</option><option value="03">Q1</option><option value="06">Q2</option><option value="09">Q3</option><option value="12">Q4</option></select>
+          </div>
+        </div>
+      </div>
+      <button class="run-btn" id="adrBtn" onclick="runADR()">Run Reverse Search <span class="arrow">›››</span></button>
+    </div>
+
+    <div class="side-section" style="margin-top:30px">
+      <div class="side-head">Reference <span class="num-label">§ 03</span></div>
+      <div style="font-size:11.5px;color:var(--ink-3);line-height:1.6">
+        PRISM is a <b style="color:var(--ink)">signal-generating</b> instrument. Disproportionality identifies reporting patterns — it does not establish causality, incidence, or comparative safety.
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════ MAIN ═══════ -->
+  <main class="main">
+
+    <!-- Landing state / always-visible doc header -->
+    <div id="landing">
+      <div class="doc-header">
+        <div class="kicker">Operating Manual</div>
+        <h1 class="doc-title">A regulatory-grade signal-detection instrument for <em>spontaneous adverse-event</em> data.</h1>
+        <p class="doc-lede">PRISM applies the four canonical disproportionality measures — Reporting Odds Ratio, Proportional Reporting Ratio, Pearson χ², and the Bayesian Information Component — to the FDA Adverse Event Monitoring System (AEMS, formerly FAERS) via the openFDA API. Outputs follow READUS-PV guidance and are intended for pharmacovigilance research, hypothesis generation, and safety surveillance.</p>
+      </div>
+
+      <div class="disclaimer">
+        <span class="disclaimer-label">Caution</span>
+        Disproportionality analysis identifies <b>statistical reporting patterns</b> in spontaneous adverse event data. It does <b>not</b> establish causality, incidence rates, or comparative drug safety. AEMS contains adverse event reports, medication error reports, and product quality complaints voluntarily submitted to the FDA. Detected signals require further clinical evaluation, biological-plausibility assessment, and real-world evidence validation. This tool is not intended to inform individual patient treatment decisions.
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title-kicker">Getting Started</div>
+            <div class="panel-title">Three query modes, one analytical core</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--rule);background:var(--paper-2)">
+          <div style="padding:18px 20px;border-right:1px solid var(--rule)">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent-2);font-weight:600;letter-spacing:0.12em">MODE 01 · SINGLE</div>
+            <div style="font-family:'Newsreader',serif;font-size:17px;font-weight:600;margin:6px 0 4px">Full drug profile</div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.55">Scan the top-N most frequently reported preferred terms for a drug. Returns ROR / PRR / χ² / IC, a forest plot of top signals, demographics, and temporal trends.</div>
+          </div>
+          <div style="padding:18px 20px;border-right:1px solid var(--rule)">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent-2);font-weight:600;letter-spacing:0.12em">MODE 02 · COMPARE</div>
+            <div style="font-family:'Newsreader',serif;font-size:17px;font-weight:600;margin:6px 0 4px">Head-to-head</div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.55">Run two drugs against the same AEMS background and inspect shared and unique events side-by-side. Useful within therapeutic class — interpret with caution.</div>
+          </div>
+          <div style="padding:18px 20px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent-2);font-weight:600;letter-spacing:0.12em">MODE 03 · REVERSE</div>
+            <div style="font-family:'Newsreader',serif;font-size:17px;font-weight:600;margin:6px 0 4px">ADR → Drug</div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.55">Rank the drugs most frequently reported as primary suspect for a specified adverse event. Supports exact MedDRA Preferred Terms or broader substring search.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress panel -->
+    <div id="pBar" class="progress-panel hidden">
+      <div class="progress-label">Processing</div>
+      <div class="progress-text" id="pTxt">Initializing…</div>
+      <div class="progress-pct" id="pPct">0%</div>
+      <div class="progress-fill" id="pFill" style="width:0%"></div>
+    </div>
+
+    <div id="errBox" class="hidden"></div>
+    <div id="out" class="hidden"></div>
+
+  </main>
+</div>
+
+<!-- ════════════════ COLOPHON ════════════════ -->
+<footer class="colophon">
+  <div class="colophon-inner">
+    <div>
+      <div class="colo-brand">PRISM</div>
+      <div class="colo-sub">Pharmacovigilance Real-time Integrated Signal Monitor</div>
+      <div class="colo-authors">Developed by <strong>Dr. Jehath Syed</strong>, <strong>Ms. Nafisa Zummarwala</strong> &amp; <strong>Dr. Sri Harsha Chalasani</strong></div>
+      <div class="colo-legal">For academic research and pharmacovigilance signal detection only. Not medical advice. Data sourced from FDA Adverse Event Monitoring System (AEMS, formerly FAERS) via openFDA and does not represent the official views of the FDA. FAERS reports are voluntary and subject to reporting bias; they do not establish drug causality, comparative safety, or absolute incidence. All signals must be interpreted by qualified professionals in the context of clinical evidence and biological plausibility.<br><strong>Conflict of Interest &amp; Funding Disclosure:</strong> The developers (Dr. Jehath Syed, Ms. Nafisa Zummarwala &amp; Dr. Sri Harsha Chalasani) declare no competing financial interests, commercial sponsorships, or pharmaceutical industry affiliations related to the development or data presentation of this signal monitoring interface. This project is conducted for independent clinical research and academic signal detection purposes only.</div>
+    </div>
+    <div class="colo-meta">
+      © 2026<br>
+      Research Use Only<br>
+      READUS-PV aligned
+    </div>
+  </div>
+</footer>
+
+<script>
+const API="https://api.fda.gov/drug/event.json";
+const CC={"US":"United States","JP":"Japan","GB":"United Kingdom","DE":"Germany","FR":"France","IT":"Italy","CA":"Canada","ES":"Spain","BR":"Brazil","AU":"Australia","IN":"India","CN":"China","KR":"South Korea","MX":"Mexico","PT":"Portugal","NL":"Netherlands","SE":"Sweden","CH":"Switzerland","BE":"Belgium","AT":"Austria","DK":"Denmark","NO":"Norway","FI":"Finland","IE":"Ireland","PL":"Poland","CZ":"Czech Republic","GR":"Greece","TR":"Turkey","IL":"Israel","AR":"Argentina","CL":"Chile","CO":"Colombia","RU":"Russia","ZA":"South Africa","TH":"Thailand","MY":"Malaysia","PH":"Philippines","SG":"Singapore","NZ":"New Zealand","SA":"Saudi Arabia","AE":"UAE","EG":"Egypt","IR":"Iran","PK":"Pakistan","TW":"Taiwan","HK":"Hong Kong","RO":"Romania","HU":"Hungary","HR":"Croatia","BG":"Bulgaria","UA":"Ukraine","SK":"Slovakia","LT":"Lithuania","LV":"Latvia","EE":"Estonia","RS":"Serbia","SI":"Slovenia","PR":"Puerto Rico","PE":"Peru","EC":"Ecuador","VE":"Venezuela","GT":"Guatemala","DO":"Dominican Republic","UY":"Uruguay","PA":"Panama","CR":"Costa Rica","JO":"Jordan","LB":"Lebanon","QA":"Qatar","KW":"Kuwait","BH":"Bahrain","OM":"Oman","BD":"Bangladesh","LK":"Sri Lanka","MM":"Myanmar","VN":"Vietnam","ID":"Indonesia","NG":"Nigeria","KE":"Kenya","GH":"Ghana","TN":"Tunisia","MA":"Morocco","DZ":"Algeria"};
+function countryName(code){return CC[code]||code}
+let R=null,R2=null,sCol="a",sDir="desc",fMode="ror",tab="signals",mode="single";
+
+function $(i){return document.getElementById(i)}
+function show(i){$(i).classList.remove("hidden")}
+function hide(i){$(i).classList.add("hidden")}
+function fill(id,d){$(id).value=d;$(id).focus()}
+function p(t,n){$("pTxt").textContent=t;$("pFill").style.width=n+"%";$("pPct").textContent=Math.round(n)+"%"}
+function fm(v,d=2){if(v==null||isNaN(v))return"—";if(Math.abs(v)>99999)return v.toExponential(1);return v.toFixed(d)}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function esc(s){return String(s).replace(/[&<>"'\/]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;","/":"&#x2F;"}[m]))}
+
+function setMode(m){
+  mode=m;
+  ["mSingle","mComp","mADR"].forEach(id=>$(id).classList.remove("on"));
+  if(m==="single"){$("mSingle").classList.add("on");show("singlePanel");hide("compPanel");hide("adrPanel")}
+  else if(m==="compare"){$("mComp").classList.add("on");hide("singlePanel");show("compPanel");hide("adrPanel")}
+  else{$("mADR").classList.add("on");hide("singlePanel");hide("compPanel");show("adrPanel")}
+  hide("out");hide("errBox");show("landing");
+}
+
+async function api(url){
+  const cacheKey = "prism_" + url;
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) return JSON.parse(cached);
+  const r=await fetch(url);
+  if(!r.ok){
+    if (r.status === 429) throw new Error("Rate limit reached (429). Please wait a few moments and try again.");
+    throw new Error("API "+r.status);
+  }
+  const data = await r.json();
+  try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
+  return data;
+}
+
+// ── BCPNN IC with IC025 ──────────────────────────────
+function calcAll(a,b,c,d){
+  if(!a||!b||!c||!d||a<1||d<=0)return null;
+  const n=a+b+c+d;
+  const ror=(a*d)/(b*c),lnR=Math.log(ror),seR=Math.sqrt(1/a+1/b+1/c+1/d);
+  const rorL=Math.exp(lnR-1.96*seR),rorU=Math.exp(lnR+1.96*seR);
+  const prr=(a/(a+b))/(c/(c+d)),lnP=Math.log(prr);
+  const seP=Math.sqrt(1/a-1/(a+b)+1/c-1/(c+d));
+  const prrL=Math.exp(lnP-1.96*seP),prrU=Math.exp(lnP+1.96*seP);
+  const chi=Math.pow(a*d-b*c,2)*n/((a+b)*(c+d)*(a+c)*(b+d));
+  const E=((a+b)*(a+c))/n;
+  const ic=Math.log2(a/E);
+  const se_ic=Math.sqrt(1/(a+0.5))/Math.LN2;
+  const ic025=ic-1.96*se_ic;
+  return{a,b,c,d,ror,rorL,rorU,prr,prrL,prrU,chi,ic,ic025,se_ic,
+    sROR:ror>1&&rorL>1&&a>=3,
+    sPRR:prr>=2&&chi>=4&&a>=3,
+    sBCPNN:ic025>0&&a>=3};
+}
+
+// Build the drug-matching portion of the query. Multi-field to handle openFDA indexing gaps
+// (e.g. atorvastatin is not indexed under openfda.generic_name.exact but IS in openfda.substance_name
+// and medicinalproduct with variations).
+function buildDrugMatch(drug){
+  const safeDrug = drug.replace(/"/g, '\\"');
+  // OR across all plausible fields — openFDA tokenises these so substring-style matches work
+  return '(patient.drug.openfda.generic_name.exact:"'+safeDrug+'"'
+       + ' OR patient.drug.openfda.substance_name.exact:"'+safeDrug+'"'
+       + ' OR patient.drug.openfda.brand_name:"'+safeDrug+'"'
+       + ' OR patient.drug.medicinalproduct:"'+safeDrug+'"'
+       + ' OR patient.drug.activesubstance.activesubstancename:"'+safeDrug+'")';
+}
+
+// Build the filter-only clause (subgroup + date). Used for cohort query AND comparator queries
+// so the 2×2 table is internally consistent (fixes C2, C3).
+function buildFilters(subgroup, dateStart, dateEnd){
+  let f='';
+  if(subgroup==="male")f+=' AND patient.patientsex:1';
+  else if(subgroup==="female")f+=' AND patient.patientsex:2';
+  else if(subgroup==="older")f+=' AND patient.patientagegroup:6';
+  else if(subgroup==="adult")f+=' AND patient.patientagegroup:5';
+  else if(subgroup==="paediatric")f+=' AND (patient.patientagegroup:1 OR patient.patientagegroup:2 OR patient.patientagegroup:3 OR patient.patientagegroup:4)';
+  if(dateStart&&dateEnd)f+=' AND receivedate:['+dateStart+' TO '+dateEnd+']';
+  else if(dateStart)f+=' AND receivedate:['+dateStart+' TO 20261231]';
+  else if(dateEnd)f+=' AND receivedate:[20040101 TO '+dateEnd+']';
+  return f;
+}
+
+function buildQuery(drug, subgroup, dateStart, dateEnd){
+  const q=buildDrugMatch(drug)+' AND patient.drug.drugcharacterization:"1"'+buildFilters(subgroup,dateStart,dateEnd);
+  return encodeURIComponent(q);
+}
+
+async function analyze(drug, subgroup, dateStart, dateEnd, topN, progOffset=0, progScale=1){
+  const qs=buildQuery(drug,subgroup,dateStart,dateEnd);
+  const filterClause=buildFilters(subgroup,dateStart,dateEnd);  // for comparator queries
+  let ev;
+  p("["+drug+"] Querying AEMS…",progOffset+5*progScale);
+  try{
+    ev=await api(API+"?search="+qs+"&count=patient.reaction.reactionmeddrapt.exact&limit="+(topN+10));
+  }catch(e){
+    throw new Error('No reports for "'+drug+'" matching the query. '+
+      (subgroup||dateStart||dateEnd?'Try relaxing the filters.':'Check spelling or try a salt form (e.g., LEVOCETIRIZINE DIHYDROCHLORIDE).'));
+  }
+  if(!ev?.results?.length){
+    if(subgroup||dateStart||dateEnd){
+      throw new Error('No reports found for "'+drug+'" matching the selected filters (subgroup / date range). Try relaxing filters or verify the drug has reports for that population.');
+    }else{
+      throw new Error('No reports for "'+drug+'". Check spelling or try the full salt name (e.g., LEVOCETIRIZINE DIHYDROCHLORIDE).');
+    }
+  }
+  const events=ev.results.slice(0,topN);
+
+  p("["+drug+"] Total report count…",progOffset+10*progScale);
+  await delay(800);
+  let td;try{td=await api(API+"?search="+qs+"&limit=1")}catch{td={meta:{results:{total:0}}}}
+  const AB=td?.meta?.results?.total||0;
+
+  // Database total — FILTERED to match the analysis cohort (C3 fix). Without filters this is all-FAERS.
+  p("["+drug+"] Database total…",progOffset+15*progScale);
+  await delay(1000);
+  const filterOnly=filterClause ? encodeURIComponent(filterClause.replace(/^ AND /,'')) : encodeURIComponent('_exists_:patient');
+  let dbD;try{dbD=await api(API+"?search="+filterOnly+"&limit=1")}catch{dbD={meta:{results:{total:0}}}}
+  const N=dbD?.meta?.results?.total||20000000;
+
+  const sigs=[];
+  const filterSuffix=filterClause?encodeURIComponent(filterClause):"";
+  
+  p("["+drug+"] Fetching background totals for all events…", progOffset+20*progScale);
+  const eventTerms = events.map(e => e.term);
+  const backgroundCounts = {};
+  
+  // Individual queries — openFDA rejects batch count+OR on the same field (403).
+  // Process in parallel groups of 5 with delays to respect rate limits.
+  const filterAnchor = filterClause ? filterClause.replace(/^ AND /, '') : '';
+  for(let i=0; i<eventTerms.length; i+=5) {
+    const chunk = eventTerms.slice(i, i+5);
+    const promises = chunk.map(term => {
+      const evQ = 'patient.reaction.reactionmeddrapt.exact:"' + term.replace(/"/g, '\\"') + '"';
+      const sq = filterAnchor ? filterAnchor + ' AND ' + evQ : evQ;
+      return api(API + "?search=" + encodeURIComponent(sq) + "&limit=1")
+        .then(r => { backgroundCounts[term.toUpperCase()] = r?.meta?.results?.total || 0; })
+        .catch(() => {});
+    });
+    await Promise.all(promises);
+    if(i+5 < eventTerms.length) await delay(600);
+    p("["+drug+"] Background totals… " + Math.min(i+5, eventTerms.length) + "/" + eventTerms.length,
+      progOffset + (20 + 50 * Math.min(i+5, eventTerms.length) / eventTerms.length) * progScale);
+  }
+
+  for(let i=0; i<events.length; i++) {
+    const term = events[i].term;
+    const a = events[i].count;
+    const AC = backgroundCounts[term.toUpperCase()] || a; 
+    const b = AB - a, c = AC - a, d = N - a - b - c;
+    
+    if(a<3){
+      sigs.push({ev:term,a,b,c,d,ror:null,rorL:null,rorU:null,prr:null,prrL:null,prrU:null,chi:null,ic:null,ic025:null,
+        sROR:false,sPRR:false,sBCPNN:false,belowThreshold:true});
+    }else if(b>0&&c>0&&d>0){
+      const m=calcAll(a,b,c,d);
+      if(m)sigs.push({ev:term,...m,belowThreshold:false});
+      else sigs.push({ev:term,a,b,c,d,ror:null,rorL:null,rorU:null,prr:null,prrL:null,prrU:null,chi:null,ic:null,ic025:null,
+        sROR:false,sPRR:false,sBCPNN:false,belowThreshold:false,uncomputable:true});
+    }else{
+      sigs.push({ev:term,a,b,c,d,ror:null,rorL:null,rorU:null,prr:null,prrL:null,prrU:null,chi:null,ic:null,ic025:null,
+        sROR:false,sPRR:false,sBCPNN:false,belowThreshold:false,uncomputable:true});
+    }
+  }
+
+  async function safeFetch(url){
+    try{return await api(url)}
+    catch(e1){
+      await delay(2000); 
+      try{return await api(url)}
+      catch{return null}
+    }
+  }
+
+  p("["+drug+"] Fetching demographics…",progOffset+77*progScale);
+  const [sxD, agD, coD] = await Promise.all([
+    safeFetch(API+"?search="+qs+"&count=patient.patientsex"),
+    safeFetch(API+"?search="+qs+"&count=patient.patientagegroup"),
+    safeFetch(API+"?search="+qs+"&count=occurcountry.exact&limit=10")
+  ]);
+
+  p("["+drug+"] Fetching outcomes…",progOffset+85*progScale);
+  const [deD, hoD, ltD, dsD, caD, otD] = await Promise.all([
+    safeFetch(API+"?search="+qs+"+AND+seriousnessdeath:1&limit=1"),
+    safeFetch(API+"?search="+qs+"+AND+seriousnesshospitalization:1&limit=1"),
+    safeFetch(API+"?search="+qs+"+AND+seriousnesslifethreatening:1&limit=1"),
+    safeFetch(API+"?search="+qs+"+AND+seriousnessdisabling:1&limit=1"),
+    safeFetch(API+"?search="+qs+"+AND+seriousnesscongenitalanomali:1&limit=1"),
+    safeFetch(API+"?search="+qs+"+AND+seriousnessother:1&limit=1")
+  ]);
+
+  const sx=sxD?{status:"fulfilled",value:sxD}:{status:"rejected"};
+  const ag=agD?{status:"fulfilled",value:agD}:{status:"rejected"};
+  const co=coD?{status:"fulfilled",value:coD}:{status:"rejected"};
+  const de=deD?{status:"fulfilled",value:deD}:{status:"rejected"};
+  const ho=hoD?{status:"fulfilled",value:hoD}:{status:"rejected"};
+  const lt=ltD?{status:"fulfilled",value:ltD}:{status:"rejected"};
+  const ds=dsD?{status:"fulfilled",value:dsD}:{status:"rejected"};
+  const ca=caD?{status:"fulfilled",value:caD}:{status:"rejected"};
+  const ot=otD?{status:"fulfilled",value:otD}:{status:"rejected"};
+
+  const sex={};if(sx.status==="fulfilled")(sx.value.results||[]).forEach(r=>{sex[r.term===1?"Male":r.term===2?"Female":"Unknown"]=r.count});
+  const age={};const aL={1:"Neonate (<1 mo)",2:"Infant (1 mo–2 y)",3:"Child (2–11 y)",4:"Adolescent (12–17 y)",5:"Adult (18–64 y)",6:"Older Adult (≥65 y)"};
+  if(ag.status==="fulfilled")(ag.value.results||[]).forEach(r=>{age[aL[r.term]||("G"+r.term)]=r.count});
+  const countries=[];if(co.status==="fulfilled")(co.value.results||[]).forEach(r=>countries.push({n:r.term,c:r.count}));
+
+  const outcomes={
+    "Death":de.status==="fulfilled"?de.value?.meta?.results?.total||0:0,
+    "Life-Threatening":lt.status==="fulfilled"?lt.value?.meta?.results?.total||0:0,
+    "Hospitalization":ho.status==="fulfilled"?ho.value?.meta?.results?.total||0:0,
+    "Disability/Permanent Damage":ds.status==="fulfilled"?ds.value?.meta?.results?.total||0:0,
+    "Congenital Anomaly/Birth Defect":ca.status==="fulfilled"?ca.value?.meta?.results?.total||0:0,
+    "Other Serious":ot.status==="fulfilled"?ot.value?.meta?.results?.total||0:0
+  };
+
+  const sub=$("subgroup")?.value||"";
+  const subLabels={"":"All patients","male":"Male","female":"Female","older":"Older Adult (≥65 years)","adult":"Adult (18–64 years)","paediatric":"Paediatric (<18 years)"};
+  function fmtQ(val){
+    if(!val)return"";
+    const y=val.substring(0,4),m=parseInt(val.substring(4,6));
+    if(m<=3)return y+" Q1";if(m<=6)return y+" Q2";if(m<=9)return y+" Q3";return y+" Q4";
+  }
+  const dateLabel=(dateStart&&dateEnd)?(fmtQ(dateStart)+" – "+fmtQ(dateEnd)):
+    dateStart?(fmtQ(dateStart)+" – Latest"):dateEnd?("2004 Q1 – "+fmtQ(dateEnd)):"All quarters";
+  return{drug,sub:subLabels[sub]||"All patients",dateRange:dateLabel,total:AB,dbN:N,sigs,topN:events.length,
+    nROR:sigs.filter(s=>s.sROR).length,nPRR:sigs.filter(s=>s.sPRR).length,
+    nBCPNN:sigs.filter(s=>s.sBCPNN).length,
+    demo:{sex,age,countries,outcomes}};
+}
+
+function getDateRange(yId,qId){const y=$(yId)?.value||"";const q=$(qId)?.value||"";if(!y)return"";return y+(q.length===2?q+"01":"0101")}
+function getDateEnd(yId,qId){const y=$(yId)?.value||"";const q=$(qId)?.value||"";if(!y)return"";const qMap={"03":"0331","06":"0630","09":"0930","12":"1231"};return y+(qMap[q]||"1231")}
+function validateDateWindow(startDate,endDate){
+  if(startDate&&endDate&&startDate>endDate){
+    return "Start period must be earlier than or equal to end period.";
+  }
+  return "";
+}
+
+async function runSingle(){
+  const drug=$("inp1").value.trim().toUpperCase();
+  if(!drug){$("inp1").focus();return}
+  const ds=getDateRange("fromY","fromQ"),de=getDateEnd("toY","toQ"),topN=parseInt($("topN")?.value||"50");
+  const dateErr=validateDateWindow(ds,de);
+  if(dateErr){
+    $("errBox").innerHTML='<div class="err-panel"><b>Invalid reporting period:</b> '+esc(dateErr)+'</div>';
+    show("errBox");show("landing");hide("out");hide("pBar");
+    return;
+  }
+  $("runBtn").disabled=true;R=null;tab="signals";fMode="all";
+  hide("landing");show("pBar");hide("errBox");hide("out");
+  try{
+    R=await analyze(drug,$("subgroup").value,ds,de,topN,0,1);
+    p("Complete",100);render();
+  }catch(e){$("errBox").innerHTML='<div class="err-panel"><b>Query failed:</b> '+esc(e.message)+suggestDrug(drug)+'</div>';show("errBox");show("landing")}
+  finally{$("runBtn").disabled=false;setTimeout(()=>hide("pBar"),900)}
+}
+
+async function runCompare(){
+  const d1=$("cInp1").value.trim().toUpperCase(),d2=$("cInp2").value.trim().toUpperCase();
+  if(!d1||!d2)return;
+  const ds=getDateRange("cfromY","cfromQ"),de=getDateEnd("ctoY","ctoQ");
+  const dateErr=validateDateWindow(ds,de);
+  if(dateErr){
+    $("errBox").innerHTML='<div class="err-panel"><b>Invalid reporting period:</b> '+esc(dateErr)+'</div>';
+    show("errBox");show("landing");hide("out");hide("pBar");
+    return;
+  }
+  $("compBtn").disabled=true;R=null;R2=null;tab="signals";fMode="all";
+  hide("landing");show("pBar");hide("errBox");hide("out");
+  try{
+    const cSubgroup=$("cSubgroup")?.value||"";
+    const cTopN=parseInt($("cTopN")?.value||"50");
+    R=await analyze(d1,cSubgroup,ds,de,cTopN,0,0.40);
+    R2=await analyze(d2,cSubgroup,ds,de,cTopN,40,0.40);
+
+    p("Cross-filling missing events…",80);
+    const map1={}, map2={};
+    R.sigs.forEach(s=>map1[s.ev]=s);
+    R2.sigs.forEach(s=>map2[s.ev]=s);
+
+    const missingIn1 = R2.sigs.filter(s=>!map1[s.ev]).map(s=>s.ev);
+    const missingIn2 = R.sigs.filter(s=>!map2[s.ev]).map(s=>s.ev);
+
+    async function fetchMissing(drugName, missingEvs) {
+      if(!missingEvs.length) return {};
+      const results = {};
+      // Individual queries — openFDA rejects batch count+OR on reaction field (403).
+      const drugQ = buildDrugMatch(drugName) + ' AND patient.drug.drugcharacterization:"1"' + buildFilters(cSubgroup, ds, de);
+      for(let i=0; i<missingEvs.length; i+=5) {
+        const chunk = missingEvs.slice(i, i+5);
+        const promises = chunk.map(ev => {
+          const q = drugQ + ' AND patient.reaction.reactionmeddrapt.exact:"' + ev.replace(/"/g, '\\"') + '"';
+          return api(API + "?search=" + encodeURIComponent(q) + "&limit=1")
+            .then(r => { results[ev.toUpperCase()] = r?.meta?.results?.total || 0; })
+            .catch(() => {});
+        });
+        await Promise.all(promises);
+        if(i+5 < missingEvs.length) await delay(600);
+      }
+      return results;
+    }
+
+    const [miss1Counts, miss2Counts] = await Promise.all([
+      fetchMissing(d1, missingIn1),
+      fetchMissing(d2, missingIn2)
+    ]);
+
+    missingIn1.forEach(ev => {
+      const a = miss1Counts[ev.toUpperCase()] || 0;
+      const s2 = map2[ev];
+      const evTot = s2.a + s2.c;
+      const b = R.total - a;
+      const c = evTot - a;
+      const d = R.dbN - a - b - c;
+      if (a < 3) map1[ev] = {ev, a, b, c, d, ror:null, ic025:null, sROR:false};
+      else if (b>0 && c>0 && d>0) {
+        const m = calcAll(a,b,c,d);
+        map1[ev] = m ? {ev, ...m} : {ev, a, b, c, d, ror:null, ic025:null, sROR:false};
+      } else map1[ev] = {ev, a, b, c, d, ror:null, ic025:null, sROR:false};
+    });
+
+    missingIn2.forEach(ev => {
+      const a = miss2Counts[ev.toUpperCase()] || 0;
+      const s1 = map1[ev];
+      const evTot = s1.a + s1.c;
+      const b = R2.total - a;
+      const c = evTot - a;
+      const d = R2.dbN - a - b - c;
+      if (a < 3) map2[ev] = {ev, a, b, c, d, ror:null, ic025:null, sROR:false};
+      else if (b>0 && c>0 && d>0) {
+        const m = calcAll(a,b,c,d);
+        map2[ev] = m ? {ev, ...m} : {ev, a, b, c, d, ror:null, ic025:null, sROR:false};
+      } else map2[ev] = {ev, a, b, c, d, ror:null, ic025:null, sROR:false};
+    });
+
+    R.sigs = Object.values(map1);
+    R2.sigs = Object.values(map2);
+
+    p("Complete",100);renderComp();
+  }catch(e){$("errBox").innerHTML='<div class="err-panel"><b>Query failed:</b> '+esc(e.message)+suggestDrug(d1)+suggestDrug(d2)+'</div>';show("errBox");show("landing")}
+  finally{$("compBtn").disabled=false;setTimeout(()=>hide("pBar"),900)}
+}
+
+const COMMON_DRUGS=["WARFARIN","RIVAROXABAN","APIXABAN","DABIGATRAN","EDOXABAN","REMDESIVIR","METFORMIN","ATORVASTATIN","AMLODIPINE","OMEPRAZOLE","METOPROLOL","LOSARTAN","LISINOPRIL","LEVOTHYROXINE","SIMVASTATIN","ROSUVASTATIN","CLOPIDOGREL","ASPIRIN","IBUPROFEN","ACETAMINOPHEN","AMOXICILLIN","AZITHROMYCIN","CIPROFLOXACIN","GABAPENTIN","PREGABALIN","SERTRALINE","FLUOXETINE","ESCITALOPRAM","DULOXETINE","VENLAFAXINE","QUETIAPINE","OLANZAPINE","ARIPIPRAZOLE","RISPERIDONE","INSULIN","GLIMEPIRIDE","SITAGLIPTIN","EMPAGLIFLOZIN","DAPAGLIFLOZIN","LIRAGLUTIDE","SEMAGLUTIDE","ENOXAPARIN","HEPARIN","FONDAPARINUX","ALTEPLASE","TICAGRELOR","PRASUGREL","VALPROIC ACID","CARBAMAZEPINE","PHENYTOIN","LEVETIRACETAM","LAMOTRIGINE","PROPRANOLOL","ATENOLOL","LEVOCETIRIZINE","CETIRIZINE","MONTELUKAST","PANTOPRAZOLE","RABEPRAZOLE","ESOMEPRAZOLE","RAMIPRIL","ENALAPRIL","TELMISARTAN","VALSARTAN","HYDROCHLOROTHIAZIDE","FUROSEMIDE","SPIRONOLACTONE","DIGOXIN","AMIODARONE","DILTIAZEM","VERAPAMIL","NIFEDIPINE","PIOGLITAZONE","GLIPIZIDE","GLYBURIDE","CANAGLIFLOZIN","ERTUGLIFLOZIN","CEPHALEXIN","DOXYCYCLINE","METRONIDAZOLE","CLINDAMYCIN","VANCOMYCIN","MEROPENEM","PIPERACILLIN"];
+
+function suggestDrug(input){
+  if(!input)return"";
+  const inp=input.toUpperCase();
+  if(COMMON_DRUGS.includes(inp))return"";
+  const suggestions=COMMON_DRUGS.filter(d=>{
+    if(d.substring(0,4)===inp.substring(0,4))return true;
+    if(d.includes(inp)||inp.includes(d))return true;
+    let match=0;for(let i=0;i<Math.min(d.length,inp.length);i++)if(d[i]===inp[i])match++;
+    return match>=inp.length*0.7&&inp.length>=4;
+  });
+  if(suggestions.length>0&&suggestions.length<=4){
+    return '<br><br><b>Did you mean:</b> '+suggestions.map(s=>'<a href="javascript:void(0)" class="drug-suggestion" data-drug="'+s+'">'+s+'</a>').join(' · ');
+  }
+  return"";
+}
+
+// ── ADR Reverse Search ──────────────────────────────
+async function runADR(){
+  const event=$("adrInp").value.trim().toUpperCase();
+  if(!event){$("adrInp").focus();return}
+  const adrDS=getDateRange("adrFromY","adrFromQ"),adrDE=getDateEnd("adrToY","adrToQ");
+  const dateErr=validateDateWindow(adrDS,adrDE);
+  if(dateErr){
+    $("errBox").innerHTML='<div class="err-panel"><b>Invalid reporting period:</b> '+esc(dateErr)+'</div>';
+    show("errBox");show("landing");hide("out");hide("pBar");
+    return;
+  }
+  $("adrBtn").disabled=true;
+  hide("landing");show("pBar");hide("errBox");hide("out");
+
+  const adrSubgroup = $("adrSubgroup")?.value || "";
+  const adrTopN = $("adrTopN")?.value || "30";
+  const filterClause = buildFilters(adrSubgroup, adrDS, adrDE);
+  const filterSuffix = filterClause ? encodeURIComponent(filterClause) : "";
+
+  function fmtQ(val){
+    if(!val)return"";
+    const y=val.substring(0,4),m=parseInt(val.substring(4,6));
+    if(m<=3)return y+" Q1";if(m<=6)return y+" Q2";if(m<=9)return y+" Q3";return y+" Q4";
+  }
+  const dateLabel=(adrDS&&adrDE)?(fmtQ(adrDS)+" – "+fmtQ(adrDE)):
+    adrDS?(fmtQ(adrDS)+" – Latest"):adrDE?("2004 Q1 – "+fmtQ(adrDE)):"All quarters";
+
+  try{
+    p("Searching drugs reported with: "+event,20);
+    let evData;
+    try{
+      const pt=encodeURIComponent('"'+event+'"');
+      evData=await api(API+"?search=patient.reaction.reactionmeddrapt.exact:"+pt+"+AND+patient.drug.drugcharacterization:1"+filterSuffix+"&count=patient.drug.openfda.generic_name.exact&limit="+adrTopN);
+    }catch{
+      p("Trying partial match…",30);
+      await delay(1200);
+      const pt2=encodeURIComponent(event);
+      evData=await api(API+"?search=patient.reaction.reactionmeddrapt:"+pt2+"+AND+patient.drug.drugcharacterization:1"+filterSuffix+"&count=patient.drug.openfda.generic_name.exact&limit="+adrTopN);
+    }
+    if(!evData?.results?.length)throw new Error('No reports for "'+event+'". Try broader terms or MedDRA Preferred Terms.');
+
+    p("Getting total event count…",50);
+    await delay(1000);
+    let totalEvent=0;
+    try{
+      const pt=encodeURIComponent('"'+event+'"');
+      const totData=await api(API+"?search=patient.reaction.reactionmeddrapt.exact:"+pt+filterSuffix+"&limit=1");
+      totalEvent=totData?.meta?.results?.total||0;
+    }catch{
+      const pt2=encodeURIComponent(event);
+      const totData=await api(API+"?search=patient.reaction.reactionmeddrapt:"+pt2+filterSuffix+"&limit=1");
+      totalEvent=totData?.meta?.results?.total||0;
+    }
+
+    p("Complete",100);
+    const drugs=evData.results;
+
+    let h='<div class="report-head">';
+    h+='<div class="kicker">Reverse Search · ADR → Drug</div>';
+    h+='<div class="report-subject"><div class="report-drug">'+esc(event)+'</div></div>';
+    h+='<div class="report-meta-strip">';
+    h+='<div class="meta-cell"><div class="meta-k">Total reports</div><div class="meta-v">'+totalEvent.toLocaleString()+'</div></div>';
+    h+='<div class="meta-cell"><div class="meta-k">Drugs listed</div><div class="meta-v">'+drugs.length+'</div></div>';
+    h+='<div class="meta-cell"><div class="meta-k">Period</div><div class="meta-v">'+dateLabel+'</div></div>';
+    h+='<div class="meta-cell"><div class="meta-k">Source</div><div class="meta-v">AEMS · openFDA</div></div>';
+    h+='<div class="meta-cell"><div class="meta-k">Generated</div><div class="meta-v">'+new Date().toISOString().replace("T"," ").substring(0,16)+' UTC</div></div>';
+    h+='</div></div>';
+
+    h+='<div class="toolbar"><div class="tabs"><button class="tab on"><span class="tab-num">01</span>Ranked Drugs</button></div>';
+    h+='<div class="exports"><button class="exp-btn" onclick="adrExportCSV()">↓ CSV</button><button class="exp-btn" onclick="window.print()">↓ PDF</button></div></div>';
+
+    h+='<div class="panel" style="margin-top:0;border-top:none"><div class="panel-head"><div><div class="panel-title-kicker">§ A · Primary Suspect Ranking</div><div class="panel-title">Drugs most frequently reported for <em>'+esc(event)+'</em></div></div></div>';
+    h+='<p class="panel-sub">Drugs most frequently listed as <b>primary suspect</b> in AEMS reports where "'+esc(event)+'" was reported as an adverse event. Higher report count does not indicate higher risk — it reflects prescribing volume, reporting culture, and time on market.</p>';
+    h+='<div class="disclaimer" style="margin:4px 0 18px"><span class="disclaimer-label">Note</span>The same active ingredient may appear under different names (e.g., "METFORMIN", "METFORMIN HYDROCHLORIDE"). PRISM does <b>not</b> deduplicate these to avoid incorrectly merging distinct salt forms, formulations, or combination products. Manual aggregation may be required.</div>';
+
+    h+='<div class="data-wrap"><table class="data"><thead><tr><th style="width:60px">Rank</th><th>Drug (Generic Name)</th><th style="text-align:right">Reports</th><th style="text-align:center">% of '+esc(event)+'</th></tr></thead><tbody>';
+    drugs.forEach((d,i)=>{
+      const pct=((d.count/totalEvent)*100).toFixed(2);
+      h+='<tr><td class="cell-num" style="text-align:left;color:var(--ink-5)">'+String(i+1).padStart(2,"0")+'</td><td class="cell-pt sig">'+esc(d.term)+'</td><td class="cell-num bold">'+d.count.toLocaleString()+'</td><td class="cell-num" style="text-align:center">'+pct+'%</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="table-foot"><b>Source.</b> AEMS · openFDA ('+dateLabel+'). Counts reflect submissions, not prescribing data or true incidence. Low percentages are expected as the denominator spans all drugs reported for this event.</div>';
+    h+='</div>';
+
+    window._adrData={event,totalEvent,drugs,dateLabel};
+    $("out").innerHTML=h;show("out");
+  }catch(e){
+    $("errBox").innerHTML='<div class="err-panel"><b>Query failed:</b> '+esc(e.message)+'</div>';show("errBox");show("landing");
+  }finally{
+    $("adrBtn").disabled=false;setTimeout(()=>hide("pBar"),900);
+  }
+}
+
+// ── Temporal Trend ──────
+async function runTrend(eventName){
+  const drug=R.drug,el=document.getElementById("trendResult");
+  if(!el)return;
+  // Inherit subgroup filter from the parent analysis (H4 fix)
+  const subgroupMap={"All patients":"","Male":"male","Female":"female","Older Adult (≥65 years)":"older","Adult (18–64 years)":"adult","Paediatric (<18 years)":"paediatric"};
+  const inheritedSubgroup=subgroupMap[R.sub]||"";
+  const win=document.getElementById("trendWindow")?.value||"recent";
+  const currentYear=new Date().getFullYear();
+  let years=[],windowLabel="";
+  if(win==="early"){
+    for(let y=2004;y<=2014;y++)years.push(y);
+    windowLabel="2004–2014";
+  }else if(win==="full"){
+    for(let y=2004;y<=currentYear;y++)years.push(y);
+    windowLabel="2004–"+currentYear+" · annual";
+  }else if(win==="biennial"){
+    for(let y=2004;y<=currentYear;y+=2)years.push(y);
+    windowLabel="2004–"+currentYear+" · biennial";
+  }else{
+    for(let y=2015;y<=currentYear;y++)years.push(y);
+    windowLabel="2015–"+currentYear;
+  }
+  el.innerHTML='<div class="panel" style="text-align:center;color:var(--ink-3);padding:32px">Querying <b>'+years.length+' years</b> ('+windowLabel+') for <b>'+esc(eventName)+'</b> …</div>';
+  const points=[];
+  for(const yr of years){
+    try{
+      await delay(1500);
+      el.innerHTML='<div class="panel" style="text-align:center;color:var(--ink-3);padding:32px">Querying <b>'+yr+'</b> …</div>';
+      const yearRange='['+yr+'0101 TO '+yr+'1231]';
+      const yearFilter=buildFilters(inheritedSubgroup,yr+'0101',yr+'1231');
+      const ds=encodeURIComponent(buildDrugMatch(drug)+' AND patient.drug.drugcharacterization:"1"'+yearFilter);
+      const pt=encodeURIComponent('"'+eventName+'"');
+      // Comparator queries also use filters for internal 2×2 consistency (H4 fix)
+      const compFilter=encodeURIComponent(yearFilter);
+      const[drugEv,drugTot,evTot,yearTot]=await Promise.allSettled([
+        api(API+"?search="+ds+"+AND+patient.reaction.reactionmeddrapt.exact:"+pt+"&limit=1"),
+        api(API+"?search="+ds+"&limit=1"),
+        api(API+"?search=patient.reaction.reactionmeddrapt.exact:"+pt+compFilter+"&limit=1"),
+        api(API+"?search="+encodeURIComponent(yearFilter.replace(/^ AND /,''))+"&limit=1")
+      ]);
+      const a=drugEv.status==="fulfilled"?drugEv.value?.meta?.results?.total||0:0;
+      const ab=drugTot.status==="fulfilled"?drugTot.value?.meta?.results?.total||0:0;
+      const ac=evTot.status==="fulfilled"?evTot.value?.meta?.results?.total||0:0;
+      const N=yearTot.status==="fulfilled"?yearTot.value?.meta?.results?.total||0:0;
+      if(a>=3&&ab>a&&ac>a&&N>ab&&N>ac){
+        const b=ab-a,c=ac-a,d=N-a-b-c;
+        if(d>0&&b>0&&c>0){
+          const m=calcAll(a,b,c,d);
+          if(m&&isFinite(m.ror)&&m.ror>0)points.push({yr,ror:m.ror,rorL:m.rorL,rorU:m.rorU,a:m.a});
+        }
+      }
+    }catch{}
+  }
+  if(!points.length){el.innerHTML='<div class="err-panel">Insufficient temporal data. This drug–event pair may have too few cases per year (minimum 3 cases per year required).</div>';return}
+  const validPoints=points.filter(p=>isFinite(p.ror)&&isFinite(p.rorL)&&isFinite(p.rorU)&&p.ror>0);
+  if(!validPoints.length){el.innerHTML='<div class="err-panel">Insufficient data for trend visualisation.</div>';return}
+  const w=900,h=340,pad={l:70,r:40,t:32,b:60};
+  const pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+  const maxR=Math.max(...validPoints.map(p=>Math.min(p.rorU,p.ror*3)))*1.2||10;
+  const xs=i=>pad.l+(i/(validPoints.length-1||1))*pw;
+  const ys=v=>pad.t+ph-Math.max(0,Math.min(1,(v/maxR)))*ph;
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;max-width:900px;display:block;margin:0 auto;font-family:\'IBM Plex Mono\',monospace">';
+  for(let i=0;i<=4;i++){const y=pad.t+ph*i/4;const v=(maxR*(4-i)/4);
+    svg+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(w-pad.r)+'" y2="'+y+'" stroke="#ebe7dc"/>';
+    svg+='<text x="'+(pad.l-10)+'" y="'+(y+4)+'" text-anchor="end" fill="#747a84" font-size="10">'+fm(v,1)+'</text>';}
+  if(maxR>1){const ny=ys(1);svg+='<line x1="'+pad.l+'" y1="'+ny+'" x2="'+(w-pad.r)+'" y2="'+ny+'" stroke="#c0392b" stroke-dasharray="3,3" opacity="0.6"/>';
+  svg+='<text x="'+(w-pad.r+4)+'" y="'+(ny+3)+'" fill="#c0392b" font-size="9" opacity="0.8">ROR=1</text>';}
+  let band='';validPoints.forEach((pt,i)=>{band+=xs(i)+','+ys(Math.min(pt.rorU,pt.ror*3))+' '});
+  [...validPoints].reverse().forEach((pt,i)=>{band+=xs(validPoints.length-1-i)+','+ys(Math.max(pt.rorL,0))+' '});
+  if(band)svg+='<polygon points="'+band+'" fill="rgba(33,76,82,0.12)"/>';
+  let line='';validPoints.forEach((pt,i)=>{line+=(line?'L':'M')+xs(i)+','+ys(pt.ror)});
+  svg+='<path d="'+line+'" fill="none" stroke="#214c52" stroke-width="1.6"/>';
+  validPoints.forEach((pt,i)=>{
+    const x=xs(i),y=ys(pt.ror);
+    svg+='<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="#214c52" stroke="#fff" stroke-width="1.2"/>';
+    svg+='<text x="'+x+'" y="'+(h-pad.b+20)+'" text-anchor="middle" fill="#4b5058" font-size="10">'+pt.yr+'</text>';
+    svg+='<text x="'+x+'" y="'+(y-10)+'" text-anchor="middle" fill="#141518" font-size="10" font-weight="600">'+fm(pt.ror,1)+'</text>';
+  });
+  svg+='<text x="'+((w/2))+'" y="'+(h-4)+'" text-anchor="middle" fill="#747a84" font-size="10">Year of Report · Null line = ROR 1 · Band = 95% CI</text>';
+  svg+='</svg>';
+  el.innerHTML='<div class="panel"><div class="panel-head"><div><div class="panel-title-kicker">Temporal Trend · '+windowLabel+'</div><div class="panel-title">Annual ROR · <em>'+esc(eventName)+'</em></div></div></div><div class="chart-wrap">'+svg+'</div></div>';
+}
+
+// ── Render Single ──────────────────────────────────────
+function render(){
+  if(!R)return;
+  let h='<div class="report-head">';
+  h+='<div class="kicker">Signal Detection Report</div>';
+  h+='<div class="report-subject"><div class="report-drug">'+esc(R.drug)+'</div>';
+  if(R.sub!=="All patients")h+='<div class="report-sub">· '+R.sub+'</div>';
+  h+='</div>';
+  h+='<div class="report-meta-strip">';
+  h+='<div class="meta-cell"><div class="meta-k">Period</div><div class="meta-v">'+R.dateRange+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">Total N</div><div class="meta-v">'+R.total.toLocaleString()+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">PTs analysed</div><div class="meta-v">'+R.sigs.length+' of '+R.topN+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">AEMS archive</div><div class="meta-v">'+(R.dbN/1e6).toFixed(1)+' M</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">Source</div><div class="meta-v">openFDA</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">Generated</div><div class="meta-v">'+new Date().toISOString().replace("T"," ").substring(0,16)+' UTC</div></div>';
+  h+='</div></div>';
+
+  h+='<div class="metric-band">';
+  h+=met("Reports","accent",R.total.toLocaleString(),"","Primary suspect · drugcharacterization = 1");
+  h+=met("Events","",R.sigs.length,"","Top "+R.topN+" most frequent PTs");
+  h+=met("ROR Signals","pos",R.nROR,"","ROR > 1 · LCI > 1 · n ≥ 3");
+  h+=met("PRR Signals","warn",R.nPRR,"","PRR ≥ 2 · χ² ≥ 4 · n ≥ 3");
+  h+=met("BCPNN Signals","accent",R.nBCPNN,"","IC₀₂₅ > 0 · n ≥ 3");
+  h+=met("AEMS N","",(R.dbN/1e6).toFixed(1),"M","Total reports in database");
+  h+='</div>';
+
+  h+='<div class="disclaimer" style="margin:0 0 22px">'+
+    '<span class="disclaimer-label">Cohort definition</span>'+
+    'Drug cohort matched using multi-field OR across openFDA generic_name, substance_name, brand_name, medicinalproduct, and activesubstance fields (primary suspect only). This is a broader cohort definition than generic_name alone and captures brand-name and combination-product reports where openFDA standardisation has gaps. Disclose in methodology.'+
+    '</div>';
+
+  h+='<div class="toolbar"><div class="tabs">';
+  [["signals","Signal Table","01"],["forest","Forest Plot","02"],["demographics","Demographics","03"],["trends","Temporal Trends","04"],["method","Methodology","05"]].forEach(([k,l,n])=>{
+    h+='<button class="tab '+(tab===k?"on":"")+'" onclick="swTab(\''+k+'\')"><span class="tab-num">'+n+'</span>'+l+'</button>';
+  });
+  h+='</div><div class="exports"><button class="exp-btn" onclick="csvExport()">↓ CSV</button><button class="exp-btn" onclick="csv2x2()">↓ 2×2</button><button class="exp-btn" onclick="window.print()">↓ PDF</button></div></div>';
+  h+='<div id="tabC"></div>';
+  $("out").innerHTML=h;show("out");renderTab();
+}
+
+function met(k,cls,v,u,s){
+  return '<div class="metric '+(cls||"")+'"><div class="metric-k">'+k+'</div><div class="metric-v">'+v+(u?'<span class="unit">'+u+'</span>':'')+'</div><div class="metric-s">'+s+'</div></div>';
+}
+
+function swTab(t){tab=t;document.querySelectorAll(".tab").forEach(b=>{
+  const txt=b.textContent.toLowerCase().replace(/\d+/g,"").trim();
+  b.classList.toggle("on",
+    (t==="signals"&&txt.includes("signal"))||
+    (t==="forest"&&txt.includes("forest"))||
+    (t==="demographics"&&txt.includes("demo"))||
+    (t==="trends"&&txt.includes("trend"))||
+    (t==="method"&&txt.includes("method")))});renderTab()}
+
+function sorted(){
+  let d=[...R.sigs];
+  if(fMode==="ror")d=d.filter(s=>s.sROR);
+  else if(fMode==="prr")d=d.filter(s=>s.sPRR);
+  else if(fMode==="both")d=d.filter(s=>s.sROR&&s.sPRR);
+  else if(fMode==="bcpnn")d=d.filter(s=>s.sBCPNN);
+  d.sort((x,y)=>{const a=x[sCol]??0,b=y[sCol]??0;return sDir==="desc"?b-a:a-b});return d}
+
+function renderTab(){
+  const el=document.getElementById("tabC");if(!el)return;
+  try{
+    if(tab==="signals")el.innerHTML=tblHTML();
+    else if(tab==="forest")el.innerHTML=forestHTML();
+    else if(tab==="demographics")el.innerHTML=demoHTML();
+    else if(tab==="trends")el.innerHTML=trendsHTML();
+    else if(tab==="method")el.innerHTML=methodHTML();
+  }catch(e){
+    el.innerHTML='<div class="err-panel"><b>Render error:</b> '+e.message+'. Likely API rate limiting — try Top 50 or wait 60 s.</div>';
+    console.error("Tab render error:",e);
+  }
+}
+
+function tblHTML(){
+  const d=sorted(),both=R.sigs.filter(s=>s.sROR&&s.sPRR).length,bcN=R.nBCPNN;
+  let h='<div class="panel"><div class="panel-head"><div><div class="panel-title-kicker">§ 01 · Signal Table</div><div class="panel-title">Disproportionality metrics per preferred term</div></div></div>';
+  h+='<div class="filter-row"><span class="filter-label">Filter</span>';
+  [["all","All"],["ror","ROR"],["prr","PRR"],["bcpnn","BCPNN"],["both","ROR + PRR"]].forEach(([k,l])=>{
+    const n=k==="all"?R.sigs.length:k==="ror"?R.nROR:k==="prr"?R.nPRR:k==="bcpnn"?bcN:both;
+    h+='<button class="filter-btn '+(fMode===k?"on":"")+'" onclick="setF(\''+k+'\')">'+l+'<span class="n">'+n+'</span></button>';
+  });
+  h+='</div>';
+
+  h+='<div class="data-wrap"><table class="data"><thead><tr>';
+  const cols=[["ev","Adverse Event (PT)","left"],["a","N","right"],["ror","ROR","right"],["rorL","95% CI","center"],["prr","PRR","right"],["chi","χ²","right"],["ic","IC","right"],["ic025","IC₀₂₅","right"],["sROR","ROR","center"],["sPRR","PRR","center"],["sBCPNN","BCPNN","center"]];
+  cols.forEach(([c,l,al])=>{h+='<th style="text-align:'+al+'" onclick="doS(\''+c+'\')">'+l+'<span class="sort-ind">'+(sCol===c?(sDir==="desc"?"▼":"▲"):"")+'</span></th>'});
+  h+='</tr></thead><tbody>';
+  d.forEach(r=>{
+    const sig=r.sROR||r.sPRR||r.sBCPNN;
+    const grey=r.belowThreshold||r.uncomputable;
+    const rowStyle=grey?' style="opacity:0.55"':'';
+    const tag=r.belowThreshold?'<span style="font-size:9px;color:var(--ink-4);margin-left:6px;font-weight:500">n&lt;3</span>':r.uncomputable?'<span style="font-size:9px;color:var(--ink-4);margin-left:6px;font-weight:500">n/c</span>':'';
+    h+='<tr'+rowStyle+'><td class="cell-pt '+(sig?"sig":"")+'" title="'+esc(r.ev)+'">'+esc(r.ev)+tag+'</td>';
+    h+='<td class="cell-num bold">'+r.a.toLocaleString()+'</td>';
+    h+='<td class="cell-num bold">'+fm(r.ror)+'</td>';
+    h+='<td class="cell-ci">'+(r.ror==null?'—':fm(r.rorL)+'–'+fm(r.rorU))+'</td>';
+    h+='<td class="cell-num bold">'+fm(r.prr)+'</td>';
+    h+='<td class="cell-num">'+fm(r.chi,1)+'</td>';
+    h+='<td class="cell-num">'+fm(r.ic)+'</td>';
+    h+='<td class="cell-num '+(r.ic025>0?"ic-pos":"")+'">'+fm(r.ic025)+'</td>';
+    h+='<td style="text-align:center"><span class="sig-badge '+(r.sROR?"yes":"no")+'">'+(r.sROR?"✓":"—")+'</span></td>';
+    h+='<td style="text-align:center"><span class="sig-badge '+(r.sPRR?"yes":"no")+'">'+(r.sPRR?"✓":"—")+'</span></td>';
+    h+='<td style="text-align:center"><span class="sig-badge '+(r.sBCPNN?"yes":"no")+'">'+(r.sBCPNN?"✓":"—")+'</span></td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  h+='<div class="table-foot"><div class="table-foot-grid">';
+  h+='<div class="foot-sect"><div class="foot-sect-h">Showing</div>'+d.length+' of top '+R.topN+' most frequently reported events. Events tagged <b>n&lt;3</b> are displayed below the signal threshold; <b>n/c</b> = metrics not computable (cell B, C, or D = 0).</div>';
+  h+='<div class="foot-sect"><div class="foot-sect-h">Signal Criteria</div><b>ROR:</b> >1, LCI>1, n≥3 · <b>PRR:</b> ≥2, χ²≥4, n≥3 · <b>BCPNN:</b> IC₀₂₅>0, n≥3.</div>';
+  h+='<div class="foot-sect"><div class="foot-sect-h">Source</div>FDA AEMS (formerly FAERS) via openFDA. Adverse event reports, medication error reports, and product quality complaints submitted to the FDA.</div>';
+  h+='</div>';
+  h+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule-2)"><div class="foot-sect-h" style="margin-bottom:6px">Abbreviations</div>PT = Preferred Term (MedDRA); ROR = Reporting Odds Ratio; LCI/UCI = Lower/Upper 95% Confidence Interval bound; PRR = Proportional Reporting Ratio; χ² = Pearson Chi-Square; IC = Information Component (BCPNN); IC₀₂₅ = Lower 2.5th percentile of IC; BCPNN = Bayesian Confidence Propagation Neural Network; N = case count for drug–event pair.</div>';
+  h+='</div></div>';
+  return h;
+}
+
+function forestHTML(){
+  const d=R.sigs.filter(s=>s.sROR).sort((a,b)=>b.ror-a.ror).slice(0,20);
+  if(!d.length)return'<div class="panel" style="color:var(--ink-4);text-align:center;padding:40px">No ROR signals to plot.</div>';
+  function toSentence(t){return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase()}
+  const maxU=Math.min(Math.max(...d.map(r=>r.rorU)),500);
+  const w=1200,rH=34,tp=36,bp=62,left=330,right=200,pw=w-left-right,h=tp+d.length*rH+bp;
+  const maxL=Math.log(maxU);
+  const xs=v=>left+(Math.log(Math.max(v,.01))/maxL)*pw;
+  const nx=xs(1);
+  let s='<div class="panel"><div class="panel-head"><div><div class="panel-title-kicker">§ 02 · Forest Plot</div><div class="panel-title">Top 20 ROR signals, ordered by point estimate</div></div><div class="exports"><button class="exp-btn" onclick="forestExportPNG()">↓ PNG</button></div></div>';
+  s+='<p class="panel-sub">Each diamond marks the <b>Reporting Odds Ratio</b> for '+R.drug+'; horizontal lines span the 95% confidence interval. The dashed vertical is the null line (ROR = 1). Events whose interval excludes 1 are statistically significant. X-axis is logarithmic.</p>';
+  s+='<svg class="forest-plot-svg" viewBox="0 0 '+w+' '+h+'" style="width:100%;display:block;margin:0 auto;font-family:\'IBM Plex Mono\',monospace">';
+  s+='<line x1="'+nx+'" y1="'+(tp-5)+'" x2="'+nx+'" y2="'+(h-bp)+'" stroke="#a9aeb6" stroke-width="1" stroke-dasharray="4,4"/>';
+  s+='<line x1="'+left+'" y1="'+(h-bp)+'" x2="'+(w-right)+'" y2="'+(h-bp)+'" stroke="#141518" stroke-width="1"/>';
+  const ticks=[0.5,1,2,5,10,20,50,100,200,500].filter(t=>t<=maxU*1.1&&t>=0.1);
+  ticks.forEach(t=>{
+    const tx=xs(t);
+    if(tx>=left-5&&tx<=w-right+5){
+      s+='<line x1="'+tx+'" y1="'+(h-bp)+'" x2="'+tx+'" y2="'+(h-bp+5)+'" stroke="#747a84" stroke-width="1"/>';
+      s+='<text x="'+tx+'" y="'+(h-bp+18)+'" text-anchor="middle" fill="#4b5058" font-size="10">'+(t===0.5?"0.5":t)+'</text>';
+    }
+  });
+  s+='<text x="'+((left+w-right)/2)+'" y="'+(h-8)+'" text-anchor="middle" fill="#747a84" font-size="10" font-style="italic" font-family="Newsreader, serif">Reporting Odds Ratio · log scale</text>';
+  d.forEach((r,i)=>{
+    const y=tp+i*rH+rH/2,cx=xs(Math.min(r.ror,maxU)),x1=xs(Math.max(r.rorL,.01)),x2=xs(Math.min(r.rorU,maxU));
+    let nm=toSentence(r.ev);if(nm.length>42)nm=nm.substring(0,40)+"…";
+    s+='<text x="'+(left-14)+'" y="'+(y+4)+'" text-anchor="end" fill="#141518" font-size="12" font-family="Newsreader, serif">'+esc(nm)+' <tspan fill="#a9aeb6" font-size="10" font-family="IBM Plex Mono, monospace">n='+r.a.toLocaleString()+'</tspan></text>';
+    s+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="#214c52" stroke-width="1.8"/>';
+    s+='<line x1="'+x1+'" y1="'+(y-4)+'" x2="'+x1+'" y2="'+(y+4)+'" stroke="#214c52" stroke-width="1.2"/>';
+    s+='<line x1="'+x2+'" y1="'+(y-4)+'" x2="'+x2+'" y2="'+(y+4)+'" stroke="#214c52" stroke-width="1.2"/>';
+    s+='<rect x="'+(cx-4)+'" y="'+(y-4)+'" width="8" height="8" fill="#214c52" transform="rotate(45,'+cx+','+y+')"/>';
+    s+='<text x="'+(w-right+12)+'" y="'+(y+4)+'" fill="#2a2d33" font-size="10.5" font-weight="500">'+fm(r.ror,1)+' ('+fm(r.rorL,1)+'–'+fm(r.rorU,1)+')</text>';
+  });
+  s+='</svg></div>';return s}
+function demoHTML(){
+  const D=R?.demo||{};
+  const sex=D.sex||{},age=D.age||{},countries=D.countries||[],outcomes=D.outcomes||{};
+  const tS=Object.values(sex).reduce((a,b)=>a+b,0)||1;
+  const tA=Object.values(age).reduce((a,b)=>a+b,0)||1;
+  const tR=R.total||1;
+
+  const hasData=Object.keys(sex).length>0||Object.keys(age).length>0||Object.keys(outcomes).length>0||countries.length>0;
+  if(!hasData){
+    return '<div class="panel" style="text-align:center;padding:40px;color:var(--sig-warn)"><b>Demographics data unavailable.</b><br><span style="color:var(--ink-3);font-size:13px">openFDA returned no demographic aggregations after two attempts. This is usually a transient openFDA issue — wait 60 s and re-run. If it persists across drugs, the API may be degraded (check <a href="https://open.fda.gov/" target="_blank" style="color:var(--accent-2)">open.fda.gov</a>).</span></div>';
+  }
+
+  let h='<div class="panel" style="padding:0"><div class="panel-head" style="padding:22px 24px 12px;margin-bottom:0"><div><div class="panel-title-kicker">§ 03 · Report Demographics</div><div class="panel-title">Who, when, where</div></div></div>';
+  h+='<div class="demo-grid">';
+
+  h+='<div class="demo-cell"><div class="demo-cell-h">Sex Distribution</div><div class="demo-cell-s">Share of reports by reported patient sex</div>';
+  if(Object.keys(sex).length>0)Object.entries(sex).forEach(([k,v])=>{h+=demoRow(k,v,tS,"both")});
+  else h+='<div style="font-size:12px;color:var(--ink-5)">No data</div>';
+  h+='</div>';
+
+  h+='<div class="demo-cell"><div class="demo-cell-h">Age Groups</div><div class="demo-cell-s">Share of reports by patient age group classification</div>';
+  if(Object.keys(age).length>0)Object.entries(age).forEach(([k,v])=>{h+=demoRow(k,v,tA,"both")});
+  else h+='<div style="font-size:12px;color:var(--ink-5)">No data</div>';
+  h+='</div>';
+
+  h+='<div class="demo-cell"><div class="demo-cell-h">Outcome Severity</div><div class="demo-cell-s">Six FDA seriousness fields. A report may meet multiple criteria — not mutually exclusive; percentages may exceed 100%.</div>';
+  if(Object.keys(outcomes).length>0)Object.entries(outcomes).forEach(([k,v])=>{h+=demoRow(k,v,tR,"both")});
+  else h+='<div style="font-size:12px;color:var(--ink-5)">No data</div>';
+  h+='</div>';
+
+  h+='<div class="demo-cell"><div class="demo-cell-h">Top Reporter Countries</div><div class="demo-cell-s">Countries where the event occurred (top 8)</div>';
+  if(countries.length>0){
+    const totalCountry=countries.reduce((s,c)=>s+c.c,0)||1;
+    countries.slice(0,8).forEach(c=>{h+=demoRow(countryName(c.n),c.c,totalCountry,"both")})
+  }
+  else h+='<div style="font-size:12px;color:var(--ink-5)">No data</div>';
+  h+='</div>';
+
+  h+='</div></div>';
+  return h}
+
+function demoRow(l,v,t,mode){
+  const pct=(v/t)*100;
+  const disp=mode==="both"?v.toLocaleString()+"  ("+pct.toFixed(1)+"%)":mode==="raw"?v.toLocaleString():pct.toFixed(1)+"%";
+  return '<div class="demo-row"><span class="demo-lbl">'+l+'</span><div class="demo-bar"><div class="demo-bar-fill" style="width:'+Math.max(pct,1.5)+'%"></div></div><span class="demo-val">'+disp+'</span></div>';
+}
+
+function trendsHTML(){
+  let h='<div class="panel"><div class="panel-head"><div><div class="panel-title-kicker">§ 04 · Temporal Trend</div><div class="panel-title">Annual ROR per drug–event pair</div></div></div>';
+  h+='<p class="panel-sub"><b>What it shows.</b> The Reporting Odds Ratio recalculated independently for each calendar year — a rising ROR may indicate emerging signal or stimulated reporting; declining may reflect label changes or attenuation; stable above the null line suggests a persistent pattern. Wider CI bands mean fewer reports that year. Years with fewer than 3 cases are excluded.</p>';
+  h+='<div style="display:grid;grid-template-columns:1fr 240px;gap:10px;margin-bottom:16px;align-items:end">';
+  h+='<div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);font-weight:600;margin-bottom:5px">Adverse Event</label>';
+  h+='<select class="field-select" id="trendSelect">';
+  h+='<option value="">— Select an event to trend —</option>';
+  R.sigs.filter(s=>s.sROR).sort((a,b)=>b.ror-a.ror).forEach(s=>{
+    h+='<option value="'+s.ev+'">'+s.ev+' · ROR '+fm(s.ror,1)+'</option>'});
+  h+='</select></div>';
+  h+='<div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);font-weight:600;margin-bottom:5px">Time Window</label>';
+  h+='<select class="field-select" id="trendWindow">';
+  h+='<option value="recent">Recent Decade (2015–present) · ~1–1.5 min</option>';
+  h+='<option value="early">Early Decade (2004–2014) · ~1.5 min</option>';
+  h+='<option value="full">Full Archive (2004–present, annual) · ~3 min</option>';
+  h+='<option value="biennial">Full Archive (2004–present, biennial) · ~1.5 min</option>';
+  h+='</select></div>';
+  h+='</div>';
+  h+='<div style="margin-bottom:16px"><button class="run-btn" style="max-width:240px" onclick="if(document.getElementById(\'trendSelect\').value)runTrend(document.getElementById(\'trendSelect\').value)">Run Trend Analysis <span class="arrow">›››</span></button></div>';
+  h+='</div>';
+  h+='<div id="trendResult"></div>';
+  return h}
+
+function methodHTML(){
+  return '<div class="method-doc">'+
+  '<div class="kicker" style="color:var(--accent-2)">§ 05 · Methodology</div>'+
+  '<h2>Analytic protocol and definitions</h2>'+
+  '<p class="body" style="font-style:italic">Prepared for reproducibility. All analyses follow READUS-PV guidance (Fusaroli et al., 2024) and use the publicly available openFDA drug adverse event API as the sole data source.</p>'+
+  '<hr>'+
+
+  '<h3><span class="sec-num">01</span>Data source</h3>'+
+  '<p class="body">Data are retrieved live from the openFDA drug adverse event API (<b>api.fda.gov/drug/event.json</b>), which exposes the FDA Adverse Event Monitoring System (AEMS) — formerly the FDA Adverse Event Reporting System (FAERS). AEMS contains adverse event reports, medication error reports, and product quality complaints submitted to the FDA. Coverage spans 2004 Q1 to the most recent released quarter; the dataset is refreshed quarterly.</p>'+
+
+  '<h3><span class="sec-num">02</span>Case selection</h3>'+
+  '<p class="body">Only reports listing the drug of interest as <b>primary suspect</b> (<i>drugcharacterization = 1</i>) are included. Matching uses the openFDA-standardised <i>generic_name</i> field, with automatic fallback to <i>medicinalproduct</i> when standardisation returns no hits. Restricting to primary suspect reduces confounding but may exclude relevant co-suspect associations.</p>'+
+  '<p class="body">Drug cohort matched using multi-field OR across openFDA generic_name, substance_name, brand_name, medicinalproduct, and activesubstance fields (primary suspect only). This is a broader cohort definition than generic_name alone and captures brand-name and combination-product reports where openFDA standardisation has gaps.</p>'+
+  
+  '<h3><span class="sec-num">03</span>Subgroup &amp; temporal filters</h3>'+
+  '<p class="body">Optional pre-analysis stratification by patient sex, age group (Older Adult ≥65, Adult 18–64, Paediatric &lt;18), and reporting period (by AEMS quarter via <i>receivedate</i>). All disproportionality calculations are performed on the filtered subset.</p>'+
+
+  '<h3><span class="sec-num">04</span>2×2 contingency table</h3>'+
+  '<table><thead><tr><th></th><th>Event of Interest</th><th>All Other Events</th><th>Total</th></tr></thead>'+
+  '<tbody><tr><th>Drug of Interest</th><td style="color:var(--accent-2);font-weight:600">A</td><td>B</td><td>A + B</td></tr>'+
+  '<tr><th>All Other Drugs</th><td>C</td><td>D</td><td>C + D</td></tr>'+
+  '<tr><th>Total</th><td>A + C</td><td>B + D</td><td><b>N</b></td></tr></tbody></table>'+
+
+  '<h3><span class="sec-num">05</span>Disproportionality measures</h3>'+
+  '<h4>Reporting Odds Ratio (ROR)</h4>'+
+  '<div class="formula">ROR = (A × D) / (B × C)<br>SE(ln ROR) = √(1/A + 1/B + 1/C + 1/D)<br>95% CI = exp[ln(ROR) ± 1.96 × SE]</div>'+
+  '<h4>Proportional Reporting Ratio (PRR)</h4>'+
+  '<div class="formula">PRR = [A / (A + B)] / [C / (C + D)]<br>SE(ln PRR) = √(1/A − 1/(A+B) + 1/C − 1/(C+D))<br>95% CI = exp[ln(PRR) ± 1.96 × SE]</div>'+
+  '<h4>Pearson χ²</h4>'+
+  '<div class="formula">χ² = (AD − BC)² × N / [(A+B)(C+D)(A+C)(B+D)]</div>'+
+  '<h4>Information Component (BCPNN)</h4>'+
+  '<div class="formula">E = (A + B) × (A + C) / N<br>IC = log₂(A / E)<br>SE(IC) = √(1 / (A + 0.5)) / ln(2)<br>IC₀₂₅ = IC − 1.96 × SE(IC)</div>'+
+  '<p class="body">A simplified BCPNN formulation was used for computational efficiency, consistent with published large-scale pharmacovigilance studies. IC₀₂₅ &gt; 0 indicates a statistically robust signal.</p>'+
+
+  '<h3><span class="sec-num">06</span>Signal detection criteria</h3>'+
+  '<div class="formula"><b>ROR:</b> ROR &gt; 1 · LCI &gt; 1 · n ≥ 3<br><b>PRR (Evans):</b> PRR ≥ 2 · χ² ≥ 4 · n ≥ 3<br><b>BCPNN:</b> IC₀₂₅ &gt; 0 · n ≥ 3</div>'+
+  '<p class="body">The minimum case count threshold (n ≥ 3) limits spurious associations from sparse data. These thresholds are standard in pharmacovigilance signal detection and balance sensitivity and specificity.</p>'+
+
+  '<h3><span class="sec-num">07</span>Outcome severity</h3>'+
+  '<p class="body">Six FDA seriousness fields are queried independently: <i>seriousnessdeath</i>, <i>seriousnesslifethreatening</i>, <i>seriousnesshospitalization</i>, <i>seriousnessdisabling</i>, <i>seriousnesscongenitalanomali</i>, <i>seriousnessother</i>. The umbrella <i>serious</i> flag is not displayed as a separate category. A single report may meet multiple criteria; percentages may sum to more than 100%.</p>'+
+
+  '<h3><span class="sec-num">08</span>Temporal trend</h3>'+
+  '<p class="body">For a selected drug–event pair, ROR is recalculated per calendar year using <i>receivedate</i>-restricted queries, with the corresponding yearly database size as denominator. A longitudinal ROR curve with 95% CI band shows signal emergence, stability, or attenuation.</p>'+
+
+  '<h3><span class="sec-num">09</span>Reverse search &amp; drug comparison</h3>'+
+  '<p class="body">Reverse search ranks drugs most frequently listed as primary suspect for a specified event, retrieved from the standardised <i>generic_name</i> field without PRISM-side deduplication across salt forms or formulations. Comparison analyses two drugs independently against the same FAERS background; reports mentioning both drugs may contribute to both analyses.</p>'+
+
+  '<h3><span class="sec-num">10</span>Limitations</h3>'+
+  '<p class="body">Disproportionality analysis identifies statistical reporting patterns in spontaneous adverse event data and does <b>not</b> establish causality, incidence rates, or comparative drug safety. Results are subject to reporting bias, notoriety bias, the Weber effect, stimulated reporting, confounding by indication, and protopathic bias. Disproportionality measures should not be used <i>per se</i> as risk measures. Signals require further clinical evaluation, biological-plausibility assessment, and real-world evidence validation.</p>'+
+
+  '<h3><span class="sec-num">11</span>Reproducibility</h3>'+
+  '<p class="body">All analyses are reproducible using the same query parameters and the time-stamped AEMS dataset served by openFDA. The CSV export includes the full 2×2 contingency values (A, B, C, D) and all derived metrics.</p>'+
+
+  '<hr>'+
+  '<h3 style="margin-top:4px"><span class="sec-num">§</span>References</h3>'+
+  '<div class="ref-item"><span class="ref-n">1</span><span>U.S. Food and Drug Administration. FDA Adverse Event Monitoring System (AEMS, formerly FAERS) Public Dashboard. <i>open.fda.gov/data/faers/</i>. Accessed April 2026.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">2</span><span>Poluzzi E, Raschi E, Piccinni C, De Ponti F. Data mining techniques in pharmacovigilance: analysis of the publicly accessible FDA adverse event reporting system (AERS). IntechOpen; 2012. doi:10.5772/50095.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">3</span><span>Van Puijenbroek EP, Bate A, Leufkens HGM, et al. A comparison of measures of disproportionality for signal detection. <i>Pharmacoepidemiol Drug Saf.</i> 2002;11(1):3–10.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">4</span><span>Bate A, Evans SJW. Quantitative signal detection using spontaneous ADR reporting. <i>Pharmacoepidemiol Drug Saf.</i> 2009;18(6):427–36.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">5</span><span>Evans SJW, Waller PC, Davis S. Use of proportional reporting ratios (PRRs) for signal generation. <i>Pharmacoepidemiol Drug Saf.</i> 2001;10(6):483–6.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">6</span><span>Norén GN, Hopstadius J, Bate A. Shrinkage observed-to-expected ratios for robust and transparent large-scale pattern discovery. <i>Stat Methods Med Res.</i> 2013;22(1):57–69.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">7</span><span>Khouri C, Fusaroli M, Salvo F, et al. Disproportionality analysis for pharmacovigilance signal detection: advantages, limitations, and a practical guide. <i>Drug Saf.</i> 2023;46(6):521–33.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">8</span><span>Fusaroli M, Salvo F, Begaud B, et al. READUS-PV: Development and Statement. <i>Drug Saf.</i> 2024;47(6):575–84.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">9</span><span>Fusaroli M, Salvo F, Begaud B, et al. READUS-PV: Explanation and Elaboration. <i>Drug Saf.</i> 2024;47(6):585–602.</span></div>'+
+  '<div class="ref-item"><span class="ref-n">10</span><span>Böhm R, Von Hehn L, Herdegen T, et al. OpenVigil FDA. <i>PLoS One.</i> 2016;11(6):e0157753.</span></div>'+
+  '</div>';
+}
+
+// ── Comparison Render ──────────────────────────────────
+function renderComp(){
+  if(!R||!R2)return;
+  let h='<div class="report-head">';
+  h+='<div class="kicker">Comparison Report</div>';
+  h+='<div class="comp-headline"><div class="comp-drug">'+esc(R.drug)+'</div><div class="comp-vs">versus</div><div class="comp-drug b">'+esc(R2.drug)+'</div></div>';
+  h+='<div class="report-meta-strip" style="margin-top:14px">';
+  h+='<div class="meta-cell"><div class="meta-k">Period</div><div class="meta-v">'+R.dateRange+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">'+esc(R.drug)+' · N</div><div class="meta-v">'+R.total.toLocaleString()+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">'+esc(R.drug)+' · ROR / BCPNN</div><div class="meta-v">'+R.nROR+' / '+R.nBCPNN+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">'+esc(R2.drug)+' · N</div><div class="meta-v">'+R2.total.toLocaleString()+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">'+esc(R2.drug)+' · ROR / BCPNN</div><div class="meta-v">'+R2.nROR+' / '+R2.nBCPNN+'</div></div>';
+  h+='<div class="meta-cell"><div class="meta-k">Generated</div><div class="meta-v">'+new Date().toISOString().replace("T"," ").substring(0,16)+' UTC</div></div>';
+  h+='</div></div>';
+
+  h+='<div class="disclaimer"><span class="disclaimer-label">Interpret with caution</span>A higher ROR for one drug does <b>not</b> indicate it is less safe. Differences may reflect reporting bias, indication spectrum, prescribing volume, time on market, or patient population — not true risk differences.</div>';
+
+  const map1={},map2={};
+  R.sigs.forEach(s=>{map1[s.ev]=s});R2.sigs.forEach(s=>{map2[s.ev]=s});
+  const allEvs=new Set([...Object.keys(map1),...Object.keys(map2)]);
+  const rows=[];
+  allEvs.forEach(ev=>{
+    const s1=map1[ev],s2=map2[ev];
+    rows.push({ev,
+      ror1:s1?.ror||0,ror2:s2?.ror||0,
+      prr1:s1?.prr||0,prr2:s2?.prr||0,
+      ic1:s1?.ic025??null,ic2:s2?.ic025??null,
+      a1:s1!=null?s1.a:null,
+      a2:s2!=null?s2.a:null,
+      sig1:s1?.sROR||false,sig2:s2?.sROR||false})});
+  rows.sort((a,b)=>b.ror1-a.ror1);
+
+  h+='<div class="toolbar"><div class="tabs"><button class="tab on"><span class="tab-num">01</span>Head-to-Head</button></div>';
+  h+='<div class="exports"><button class="exp-btn" onclick="compExportCSV()">↓ CSV</button><button class="exp-btn" onclick="window.print()">↓ PDF</button></div></div>';
+
+  h+='<div class="panel"><div class="panel-head"><div><div class="panel-title-kicker">§ A · Shared &amp; unique events</div><div class="panel-title">'+R.drug+' and '+R2.drug+', sorted by ROR of '+R.drug+'</div></div></div>';
+  h+='<p class="panel-sub">Case count (n), ROR and IC₀₂₅ for each drug. "NR" indicates no reports or insufficient cases (n &lt; 3) for disproportionality calculation.</p>';
+  h+='<div class="data-wrap"><table class="data"><thead><tr>';
+  h+='<th>Adverse Event</th>';
+  h+='<th style="text-align:right">'+esc(R.drug)+' N</th><th style="text-align:right">'+esc(R.drug)+' ROR</th><th style="text-align:right">'+esc(R.drug)+' IC₀₂₅</th>';
+  h+='<th style="text-align:right">'+esc(R2.drug)+' N</th><th style="text-align:right">'+esc(R2.drug)+' ROR</th><th style="text-align:right">'+esc(R2.drug)+' IC₀₂₅</th>';
+  h+='<th style="text-align:center">Higher Reporting Rate *</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    // a1/a2: null = truly no cross-fill data; number (0+) = retrieved (may be below n<3)
+    const d1E = r.a1 !== null, d2E = r.a2 !== null;
+    const higher = (d1E&&r.sig1&&(!d2E||(r.ror1>r.ror2))) ? R.drug
+                 : (d2E&&r.sig2&&(!d1E||(r.ror2>r.ror1))) ? R2.drug : '—';
+    const hColor = higher===R.drug?'var(--ink)':higher===R2.drug?'var(--accent-2)':'var(--ink-5)';
+    const nr   = '<span style="color:var(--ink-5)">NR</span>';
+    const nlt3 = '<span style="color:var(--ink-4)">n&lt;3</span>';
+    const metricCell = (exists, a, val) => {
+      if (!exists) return nr;
+      if (a < 3)   return nlt3;
+      return (val != null && val > 0) ? fm(val) : nr;
+    };
+    h+='<tr><td class="cell-pt">'+esc(r.ev)+'</td>';
+    h+='<td class="cell-num">'+(d1E ? r.a1.toLocaleString() : nr)+'</td>';
+    h+='<td class="cell-num bold">'+metricCell(d1E,r.a1,r.ror1)+'</td>';
+    h+='<td class="cell-num '+(r.ic1>0?'ic-pos':'')+'">'+metricCell(d1E,r.a1,r.ic1)+'</td>';
+    h+='<td class="cell-num">'+(d2E ? r.a2.toLocaleString() : nr)+'</td>';
+    h+='<td class="cell-num bold" style="color:var(--accent-2)">'+metricCell(d2E,r.a2,r.ror2)+'</td>';
+    h+='<td class="cell-num '+(r.ic2>0?'ic-pos':'')+'">'+metricCell(d2E,r.a2,r.ic2)+'</td>';
+    h+='<td class="cell-num" style="text-align:center;color:'+hColor+';font-weight:600">'+higher+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="table-foot">* Indicates which drug has the higher ROR for this event. Reflects reporting patterns only — <b>not</b> comparative safety or risk.<br><br><b>Abbreviations:</b> ROR = Reporting Odds Ratio; IC₀₂₅ = Lower 2.5th percentile of the Information Component (BCPNN); NR = Not Reported / insufficient cases; N = case count.</div>';
+  h+='</div>';
+  window._compRows=rows;
+  $("out").innerHTML=h;show("out");
+}
+
+function doS(c){if(sCol===c)sDir=sDir==="desc"?"asc":"desc";else{sCol=c;sDir="desc"}renderTab()}
+function setF(m){fMode=m;renderTab()}
+
+function forestExportPNG(){
+  const svg=document.querySelector('.forest-plot-svg');
+  if(!svg)return;
+  const copy=svg.cloneNode(true);
+  const vb=(copy.getAttribute('viewBox')||'0 0 1200 800').split(/\s+/).map(Number);
+  const w=vb[2]||1200,h=vb[3]||800,scale=2;
+  copy.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  copy.setAttribute('width',w);
+  copy.setAttribute('height',h);
+  const xml=new XMLSerializer().serializeToString(copy);
+  const url=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'}));
+  const img=new Image();
+  img.onload=function(){
+    const canvas=document.createElement('canvas');
+    canvas.width=w*scale;canvas.height=h*scale;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.scale(scale,scale);ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(blob){
+      if(!blob)return;
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='PRISM_'+esc(R.drug).replace(/[^a-zA-Z0-9_-]/g,'_')+'_forest_plot.png';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    },'image/png');
+  };
+  img.src=url;
+}
+// ── Exports ──────────────────────────────────────────
+function csvExport(){
+  if(!R)return;
+  const h="Drug,Subgroup,Date_Range,Adverse_Event,A,B,C,D,ROR,ROR_LCI,ROR_UCI,PRR,PRR_LCI,PRR_UCI,Chi_Square,IC,IC025,Signal_ROR,Signal_PRR,Signal_BCPNN\n";
+  const rows=sorted().map(r=>'"'+R.drug+'","'+R.sub+'","'+R.dateRange+'","'+r.ev+'",'+r.a+','+r.b+','+r.c+','+r.d+','+fm(r.ror,4)+','+fm(r.rorL,4)+','+fm(r.rorU,4)+','+fm(r.prr,4)+','+fm(r.prrL,4)+','+fm(r.prrU,4)+','+fm(r.chi,4)+','+fm(r.ic,4)+','+fm(r.ic025,4)+','+(r.sROR?"YES":"NO")+','+(r.sPRR?"YES":"NO")+','+(r.sBCPNN?"YES":"NO")).join("\n");
+  dl(h+rows,"PRISM_"+esc(R.drug).replace(/[^a-zA-Z0-9_-]/g,"_")+"_signals.csv","text/csv")}
+function csv2x2(){
+  if(!R)return;
+  const h="Drug,Adverse_Event,A,B,C,D,Total_Drug,Total_Event,Database_N\n";
+  const rows=sorted().map(r=>'"'+R.drug+'","'+r.ev+'",'+r.a+','+r.b+','+r.c+','+r.d+','+(r.a+r.b)+','+(r.a+r.c)+','+R.dbN).join("\n");
+  dl(h+rows,"PRISM_"+esc(R.drug).replace(/[^a-zA-Z0-9_-]/g,"_")+"_2x2.csv","text/csv")}
+function dl(c,n,t){const b=new Blob([c],{type:t}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;a.click()}
+function adrExportCSV(){
+  if(!window._adrData)return;
+  const d=window._adrData;
+  const hdr="Adverse_Event,Total_Event_Reports,Period,Rank,Drug_Generic_Name,Reports_as_Primary_Suspect,Percentage\n";
+  const rows=d.drugs.map((dr,i)=>'"'+d.event+'",'+d.totalEvent+',"'+(d.dateLabel||"All quarters")+'",'+(i+1)+',"'+dr.term+'",'+dr.count+','+((dr.count/d.totalEvent)*100).toFixed(4)).join("\n");
+  dl(hdr+rows,"PRISM_ADR_"+esc(d.event).replace(/[^a-zA-Z0-9_-]/g,"_")+".csv","text/csv");
+}
+function compExportCSV(){
+  if(!window._compRows||!R||!R2)return;
+  const hdr="Adverse_Event,"+R.drug+"_Cases,"+R.drug+"_ROR,"+R.drug+"_IC025,"+R2.drug+"_Cases,"+R2.drug+"_ROR,"+R2.drug+"_IC025,Higher_Reporting_Rate\n";
+  const rows=window._compRows.map(r=>{
+    const drug1HasData=r.a1>0,drug2HasData=r.a2>0;
+    const higher=(drug1HasData&&r.sig1&&(!drug2HasData||(r.ror1>r.ror2)))?R.drug
+                :(drug2HasData&&r.sig2&&(!drug1HasData||(r.ror2>r.ror1)))?R2.drug:"—";
+    const nr="NR";
+    const c1=drug1HasData?r.a1:nr,ror1v=drug1HasData?fm(r.ror1,4):nr,ic1v=(drug1HasData&&r.ic1!=null)?fm(r.ic1,4):nr;
+    const c2=drug2HasData?r.a2:nr,ror2v=drug2HasData?fm(r.ror2,4):nr,ic2v=(drug2HasData&&r.ic2!=null)?fm(r.ic2,4):nr;
+    return '"'+r.ev+'",'+c1+','+ror1v+','+ic1v+','+c2+','+ror2v+','+ic2v+',"'+higher+'"';
+  }).join("\n");
+  dl(hdr+rows,"PRISM_"+esc(R.drug).replace(/[^a-zA-Z0-9_-]/g,"_")+"_vs_"+esc(R2.drug).replace(/[^a-zA-Z0-9_-]/g,"_")+"_comparison.csv","text/csv");
+}
+
+async function getQuarter(){
+  try{
+    const res = await api(API+"?search=_exists_:receivedate&sort=receivedate:desc&limit=1");
+    if (res && res.results && res.results.length > 0) {
+      const t = res.results[0].receivedate;
+      const y = t.substring(0,4);
+      const m = parseInt(t.substring(4,6));
+      const q = Math.ceil(m/3);
+      $("qInfo").textContent="AEMS 2004 Q1 — " + y + " Q" + q;
+    } else {
+      $("qInfo").textContent="AEMS 2004 Q1 — latest";
+    }
+  }catch{$("qInfo").textContent="AEMS 2004 Q1 — latest"}
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  $("inp1").addEventListener("keydown",e=>{if(e.key==="Enter"&&!$("runBtn").disabled)runSingle()});
+  $("adrInp").addEventListener("keydown",e=>{if(e.key==="Enter"&&!$("adrBtn").disabled)runADR()});
+  const now=new Date();
+  const mos=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const iss=$("issueDate");if(iss)iss.textContent=mos[now.getMonth()]+" "+now.getDate()+" · "+now.getFullYear();
+  $("inp1").focus();
+  getQuarter();
+});
+</script>
+
+
+</body></html>
