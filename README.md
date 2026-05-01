@@ -25,15 +25,15 @@ using the openFDA public API. No software installation required.
 
 ## Authors
 **Developed by**
-- Dr. Jehath Syed — Department of Pharmaceutical Sciences, School of Health Sciences and Technology, Dr. Vishwanath Karad MIT World Peace University, Pune, India
-- Dr. Sri Harsha Chalasani — Department of Pharmacy Practice, JSS College of Pharmacy, JSS Academy of Higher Education & Research, Mysuru, India
+- Dr. Jehath Syed, Department of Pharmaceutical Sciences, School of Health Sciences and Technology, Dr. Vishwanath Karad MIT World Peace University, Pune, India
+- Dr. Sri Harsha Chalasani, Department of Pharmacy Practice, JSS College of Pharmacy, JSS Academy of Higher Education & Research, Mysuru, India
 
 **Independent Validation**
-- Ms. Nafisa Zummarwala — Dr. Vishwanath Karad MIT World Peace University, Pune, India
+- Ms. Nafisa Zummarwala, Dr. Vishwanath Karad MIT World Peace University, Pune, India
 ---
 
 ## Data Source
-This tool uses the **openFDA FAERS API** — a free, publicly available resource 
+This tool uses the **openFDA FAERS API** - a free, publicly available resource 
 provided by the U.S. Food and Drug Administration.
 
 - No institutional infrastructure or funding was used in development
