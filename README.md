@@ -71,6 +71,13 @@ For academic research and pharmacovigilance signal detection only.
 Not medical advice. This tool does not represent the official views of the FDA.
 
 ---
+## Motivation
+PRISM was developed to provide free and accessible pharmacovigilance signal detection capabilities for researchers, particularly in low- and middle-income countries (LMICs), where access to commercial tools or dedicated data science infrastructure is often limited.
 
+The tool is designed to enable intuitive, browser-based exploration of pharmacovigilance data without the need for installation, specialized software, or computational resources.
+
+Developed as an independent, open-source initiative, PRISM aims to support equitable access to drug safety analytics and facilitate early-stage research and signal exploration.
+
+---
 ## Publication Status
 Manuscript in preparation for journal submission (2026)
