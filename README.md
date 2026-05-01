@@ -1,4 +1,4 @@
-# PRISM — Pharmacovigilance Real-time Integrated Signal Monitor
+# PRISM - Pharmacovigilance Real-time Integrated Signal Monitor
 
 A browser-based, zero-installation pharmacovigilance tool for automated 
 disproportionality analysis of the FDA Adverse Event Reporting System (FAERS) 
@@ -22,8 +22,6 @@ using the openFDA public API. No software installation required.
 - BCPNN Information Component (IC / IC₀₂₅)
 
 ---
-
-## Authors
 
 ## Authors
 **Developed by**
@@ -62,7 +60,7 @@ Full license text: https://www.gnu.org/licenses/agpl-3.0.html
 ## Citation
 If you use PRISM in your research, please cite:
 
-> Syed J, Chalasani SH, Zummarwala N. PRISM — Pharmacovigilance Real-time 
+> Syed J, Chalasani SH, Zummarwala N. PRISM - Pharmacovigilance Real-time 
 > Integrated Signal Monitor. 2026. Available at: 
 > https://prism-pharmacovigilance.vercel.app
 
