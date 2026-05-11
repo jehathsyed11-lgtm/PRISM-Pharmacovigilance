@@ -5,7 +5,7 @@ disproportionality analysis of the FDA Adverse Event Reporting System (FAERS)
 using the openFDA public API. No software installation required.
 
 ## Live Tool
-🔗 https://prism-pharmacovigilance.vercel.app
+🔗 https://prism-pharmacovigilance.org
 
 ---
 
