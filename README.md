@@ -62,7 +62,7 @@ If you use PRISM in your research, please cite:
 
 > Syed J, Chalasani SH, Zummarwala N. PRISM - Pharmacovigilance Real-time 
 > Integrated Signal Monitor. 2026. Available at: 
-> https://prism-pharmacovigilance.vercel.app
+> https://prism-pharmacovigilance.org/
 
 ---
 
